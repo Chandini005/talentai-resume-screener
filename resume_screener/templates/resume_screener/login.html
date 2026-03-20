@@ -1,0 +1,39 @@
+{% extends 'resume_screener/base.html' %}
+{% block title %}Sign In{% endblock %}
+{% block navbar %}{% endblock %}
+{% block content %}
+<div class="auth-bg">
+  <div class="auth-card">
+    <div style="text-align:center;margin-bottom:2rem">
+      <span style="font-size:2rem;font-weight:900;color:var(--teal)">TalentAI</span>
+      <p style="color:var(--muted);margin:.5rem 0 0;font-size:.9rem">Sign in to your account</p>
+    </div>
+
+    <form method="post" action="{% url 'login' %}">
+      {% csrf_token %}
+      <div class="mb-3">
+        <label class="form-label">Username</label>
+        {{ form.username }}
+        {% if form.username.errors %}<div style="color:var(--rose);font-size:.8rem;margin-top:.3rem">{{ form.username.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="mb-4">
+        <label class="form-label">Password</label>
+        {{ form.password }}
+        {% if form.password.errors %}<div style="color:var(--rose);font-size:.8rem;margin-top:.3rem">{{ form.password.errors.0 }}</div>{% endif %}
+      </div>
+      {% if form.non_field_errors %}
+      <div style="background:rgba(245,71,106,.1);border:1px solid rgba(245,71,106,.3);border-radius:10px;padding:.75rem 1rem;color:var(--rose);font-size:.875rem;margin-bottom:1rem">
+        <i class="bi bi-exclamation-triangle me-1"></i>{{ form.non_field_errors.0 }}
+      </div>
+      {% endif %}
+      <button type="submit" class="btn-teal w-100" style="justify-content:center;padding:.75rem">
+        <i class="bi bi-box-arrow-in-right"></i>Sign In
+      </button>
+    </form>
+
+    <p style="text-align:center;color:var(--muted);font-size:.875rem;margin-top:1.5rem">
+      No account? <a href="{% url 'register' %}" style="color:var(--teal);text-decoration:none;font-weight:600">Create one</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

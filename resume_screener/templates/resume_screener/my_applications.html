@@ -1,0 +1,165 @@
+{% extends 'resume_screener/base.html' %}
+{% block title %}My Applications{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="page-hdr">
+    <h1><i class="bi bi-file-earmark-text me-2" style="color:var(--teal)"></i>My Applications</h1>
+    <p>{{ total }} application{{ total|pluralize }} submitted · NLP-scored instantly on upload</p>
+  </div>
+
+  {% if applications %}
+  <div style="display:flex;flex-direction:column;gap:1rem">
+    {% for app in applications %}
+    <div class="card-dark"
+         style="transition:border-color .2s"
+         onmouseover="this.style.borderColor='rgba(15,214,194,.3)'"
+         onmouseout="this.style.borderColor='rgba(255,255,255,.08)'">
+      <div class="card-dark-body">
+        <div class="row align-items-center g-3">
+
+          <!-- Score ring -->
+          <div class="col-auto">
+            <div class="score-ring
+              {% if app.match_score is not None %}
+                {% if app.match_score >= 70 %}score-high{% elif app.match_score >= 45 %}score-mid{% else %}score-low{% endif %}
+              {% else %}score-pending{% endif %}"
+                 style="width:72px;height:72px;font-size:1.05rem;flex-direction:column">
+              {% if app.match_score is not None %}
+                <span>{{ app.match_score|floatformat:0 }}%</span>
+                <span style="font-size:.55rem;font-weight:500;opacity:.8">{{ app.score_label }}</span>
+              {% else %}
+                <i class="bi bi-hourglass-split" style="font-size:1.2rem"></i>
+                <span style="font-size:.55rem;margin-top:2px">pending</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <!-- Job info -->
+          <div class="col">
+            <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:.3rem">
+              <h2 style="font-size:1.05rem;font-weight:700;color:#fff;margin:0">
+                {{ app.job_posting.title }}
+              </h2>
+              <!-- Status -->
+              {% if app.status == 'shortlisted' %}
+                <span class="pill pill-teal"><i class="bi bi-star-fill me-1"></i>Shortlisted</span>
+              {% elif app.status == 'hired' %}
+                <span class="pill" style="background:rgba(15,214,194,.2);color:var(--teal);border:1px solid var(--teal)">
+                  <i class="bi bi-trophy-fill me-1"></i>Hired
+                </span>
+              {% elif app.status == 'rejected' %}
+                <span class="pill pill-rose">Rejected</span>
+              {% elif app.status == 'analysed' %}
+                <span class="pill pill-amber">Analysed</span>
+              {% else %}
+                <span class="pill pill-muted">Pending</span>
+              {% endif %}
+            </div>
+
+            <div style="font-size:.78rem;color:var(--muted);display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:.75rem">
+              {% if app.job_posting.company %}
+                <span><i class="bi bi-building me-1"></i>{{ app.job_posting.company }}</span>
+              {% endif %}
+              <span><i class="bi bi-person me-1"></i>{{ app.job_posting.recruiter.username }}</span>
+              <span><i class="bi bi-calendar me-1"></i>Applied {{ app.applied_at|date:"M d, Y" }}</span>
+            </div>
+
+            <!-- Sub-scores -->
+            {% if app.match_score is not None %}
+            <div style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-bottom:.75rem">
+              <div>
+                <div style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600">Skill Overlap</div>
+                <div style="font-family:var(--mono);font-weight:700;color:var(--amber)">
+                  {{ app.skill_score|floatformat:1 }}%
+                </div>
+              </div>
+              <div>
+                <div style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600">Semantic (TF-IDF)</div>
+                <div style="font-family:var(--mono);font-weight:700;color:var(--teal)">
+                  {{ app.tfidf_score|floatformat:1 }}%
+                </div>
+              </div>
+              <div>
+                <div style="font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:600">Matched Skills</div>
+                <div style="font-family:var(--mono);font-weight:700;color:var(--text)">
+                  {{ app.matched_skills|length }} / {{ app.matched_skills|length|add:app.missing_skills|length }}
+                </div>
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Score bar -->
+            {% if app.match_score is not None %}
+            <div class="progress-dark" style="height:5px;max-width:400px">
+              <div class="progress-dark-fill"
+                   style="width:{{ app.match_score|floatformat:0 }}%;
+                          background:{% if app.match_score >= 70 %}var(--teal){% elif app.match_score >= 45 %}var(--amber){% else %}var(--rose){% endif %}">
+              </div>
+            </div>
+            {% endif %}
+
+            <!-- Matched skills preview -->
+            {% if app.matched_skills %}
+            <div style="margin-top:.6rem;display:flex;flex-wrap:wrap;gap:4px;align-items:center">
+              <span style="font-size:.68rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-right:4px">
+                Matched:
+              </span>
+              {% for skill in app.matched_skills|slice:":6" %}
+                <span class="pill pill-teal" style="font-size:.68rem">{{ skill }}</span>
+              {% endfor %}
+              {% if app.matched_skills|length > 6 %}
+                <span class="pill pill-muted" style="font-size:.68rem">+{{ app.matched_skills|length|add:"-6" }}</span>
+              {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Missing skills preview -->
+            {% if app.missing_skills %}
+            <div style="margin-top:.4rem;display:flex;flex-wrap:wrap;gap:4px;align-items:center">
+              <span style="font-size:.68rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-right:4px">
+                Missing:
+              </span>
+              {% for skill in app.missing_skills|slice:":4" %}
+                <span class="pill pill-rose" style="font-size:.68rem">{{ skill }}</span>
+              {% endfor %}
+              {% if app.missing_skills|length > 4 %}
+                <span class="pill pill-muted" style="font-size:.68rem">+{{ app.missing_skills|length|add:"-4" }}</span>
+              {% endif %}
+            </div>
+            {% endif %}
+
+          </div>
+
+          <!-- Resume link -->
+          <div class="col-auto">
+            <a href="{{ app.resume_file.url }}" target="_blank" class="btn-ghost"
+               style="padding:.45rem .9rem;font-size:.8rem">
+              <i class="bi bi-file-earmark-pdf" style="color:var(--rose)"></i>Resume
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="card-dark">
+    <div class="empty-state">
+      <i class="bi bi-file-earmark-plus"></i>
+      <h3>No applications yet</h3>
+      <p style="color:var(--muted);margin-bottom:1.5rem">
+        Browse open positions and upload your resume for an instant AI match score.
+      </p>
+      <a href="{% url 'candidate_dashboard' %}" class="btn-teal">
+        <i class="bi bi-search"></i>Browse Jobs
+      </a>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

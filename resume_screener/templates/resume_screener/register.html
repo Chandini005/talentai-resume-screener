@@ -1,0 +1,66 @@
+{% extends 'resume_screener/base.html' %}
+{% block title %}Create Account{% endblock %}
+{% block navbar %}{% endblock %}
+{% block content %}
+<div class="auth-bg">
+  <div class="auth-card" style="max-width:520px">
+    <div style="text-align:center;margin-bottom:2rem">
+      <span style="font-size:2rem;font-weight:900;color:var(--teal)">TalentAI</span>
+      <p style="color:var(--muted);margin:.5rem 0 0;font-size:.9rem">Create your account</p>
+    </div>
+
+    <form method="post" action="{% url 'register' %}">
+      {% csrf_token %}
+      <div class="row g-3">
+        <div class="col-6">
+          <label class="form-label">First Name</label>
+          {{ form.first_name }}
+        </div>
+        <div class="col-6">
+          <label class="form-label">Last Name</label>
+          {{ form.last_name }}
+        </div>
+        <div class="col-12">
+          <label class="form-label">Username <span style="color:var(--rose)">*</span></label>
+          {{ form.username }}
+          {% if form.username.errors %}<div style="color:var(--rose);font-size:.8rem;margin-top:.3rem">{{ form.username.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="col-12">
+          <label class="form-label">Email <span style="color:var(--rose)">*</span></label>
+          {{ form.email }}
+          {% if form.email.errors %}<div style="color:var(--rose);font-size:.8rem;margin-top:.3rem">{{ form.email.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="col-12">
+          <label class="form-label">Account Type <span style="color:var(--rose)">*</span></label>
+          {{ form.role }}
+          <div class="form-text">Recruiters post jobs · Candidates apply to jobs</div>
+        </div>
+        <div class="col-12">
+          <label class="form-label">Password <span style="color:var(--rose)">*</span></label>
+          {{ form.password1 }}
+          {% if form.password1.errors %}<div style="color:var(--rose);font-size:.8rem;margin-top:.3rem">{{ form.password1.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="col-12">
+          <label class="form-label">Confirm Password <span style="color:var(--rose)">*</span></label>
+          {{ form.password2 }}
+          {% if form.password2.errors %}<div style="color:var(--rose);font-size:.8rem;margin-top:.3rem">{{ form.password2.errors.0 }}</div>{% endif %}
+        </div>
+      </div>
+
+      {% if form.non_field_errors %}
+      <div style="background:rgba(245,71,106,.1);border:1px solid rgba(245,71,106,.3);border-radius:10px;padding:.75rem 1rem;color:var(--rose);font-size:.875rem;margin-top:1rem">
+        {{ form.non_field_errors.0 }}
+      </div>
+      {% endif %}
+
+      <button type="submit" class="btn-teal w-100 mt-4" style="justify-content:center;padding:.75rem">
+        <i class="bi bi-person-plus"></i>Create Account
+      </button>
+    </form>
+
+    <p style="text-align:center;color:var(--muted);font-size:.875rem;margin-top:1.5rem">
+      Have an account? <a href="{% url 'login' %}" style="color:var(--teal);text-decoration:none;font-weight:600">Sign in</a>
+    </p>
+  </div>
+</div>
+{% endblock %}

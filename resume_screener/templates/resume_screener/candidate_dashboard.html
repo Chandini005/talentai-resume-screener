@@ -1,0 +1,108 @@
+{% extends 'resume_screener/base.html' %}
+{% block title %}Browse Jobs{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <div class="page-hdr">
+    <h1><i class="bi bi-search me-2" style="color:var(--teal)"></i>Open Positions</h1>
+    <p>{{ open_count }} active job{{ open_count|pluralize }} available · Upload your resume for an instant AI match score</p>
+  </div>
+
+  {% if jobs_data %}
+  <div class="row g-4">
+    {% for item in jobs_data %}
+    <div class="col-md-6 col-xl-4">
+      <div class="card-dark h-100" style="position:relative;display:flex;flex-direction:column;transition:transform .2s,border-color .2s"
+           onmouseover="this.style.transform='translateY(-3px)';this.style.borderColor='rgba(15,214,194,.35)'"
+           onmouseout="this.style.transform='';this.style.borderColor='rgba(255,255,255,.08)'">
+
+        <!-- Applied badge -->
+        {% if item.applied %}
+        <div style="position:absolute;top:1rem;right:1rem">
+          <span class="pill pill-teal">
+            <i class="bi bi-check-circle-fill me-1"></i>Applied
+          </span>
+        </div>
+        {% endif %}
+
+        <div class="card-dark-body" style="flex:1;display:flex;flex-direction:column;gap:.75rem">
+
+          <!-- Header -->
+          <div>
+            <h2 style="font-size:1.05rem;font-weight:700;color:#fff;margin-bottom:.3rem;
+                       padding-right:{% if item.applied %}4.5rem{% else %}0{% endif %}">
+              {{ item.job.title }}
+            </h2>
+            <div style="font-size:.78rem;color:var(--muted);display:flex;gap:.75rem;flex-wrap:wrap">
+              {% if item.job.company %}
+                <span><i class="bi bi-building me-1"></i>{{ item.job.company }}</span>
+              {% endif %}
+              <span><i class="bi bi-geo-alt me-1"></i>{{ item.job.location }}</span>
+              <span><i class="bi bi-person me-1"></i>{{ item.job.get_experience_level_display }}</span>
+            </div>
+          </div>
+
+          <!-- Salary -->
+          {% if item.job.salary_range %}
+          <div style="font-size:.8rem;color:var(--teal);font-family:var(--mono);font-weight:600">
+            <i class="bi bi-currency-dollar me-1"></i>{{ item.job.salary_range }}
+          </div>
+          {% endif %}
+
+          <!-- Description preview -->
+          <p style="color:var(--muted);font-size:.83rem;line-height:1.6;flex:1;
+                    overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;margin:0">
+            {{ item.job.description }}
+          </p>
+
+          <!-- Skills -->
+          {% if item.skills %}
+          <div style="display:flex;flex-wrap:wrap;gap:4px">
+            {% for skill in item.skills|slice:":5" %}
+              <span class="pill pill-muted">{{ skill }}</span>
+            {% endfor %}
+            {% if item.skills|length > 5 %}
+              <span class="pill pill-muted">+{{ item.skills|length|add:"-5" }}</span>
+            {% endif %}
+          </div>
+          {% endif %}
+
+          <!-- CTA -->
+          <div style="margin-top:auto;padding-top:.75rem;border-top:1px solid var(--border)">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <span style="font-size:.72rem;color:var(--muted)">
+                <i class="bi bi-clock me-1"></i>{{ item.job.created_at|date:"M d, Y" }}
+              </span>
+              {% if item.applied %}
+                <a href="{% url 'my_applications' %}" class="btn-ghost"
+                   style="padding:.35rem .9rem;font-size:.8rem">
+                  <i class="bi bi-eye"></i>View Score
+                </a>
+              {% else %}
+                <a href="{% url 'apply_job' item.job.pk %}" class="btn-teal"
+                   style="padding:.35rem 1rem;font-size:.8rem">
+                  <i class="bi bi-send"></i>Apply Now
+                </a>
+              {% endif %}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <div class="card-dark">
+    <div class="empty-state">
+      <i class="bi bi-briefcase"></i>
+      <h3>No open positions right now</h3>
+      <p style="color:var(--muted)">Check back soon — new jobs are posted regularly.</p>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

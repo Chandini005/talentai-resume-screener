@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>{% block title %}TalentAI{% endblock %} · AI Resume Screener</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+
+  <style>
+    :root {
+      --ink:       #0a0e1a;
+      --ink-soft:  #1c2333;
+      --surface:   #141927;
+      --panel:     #1e2740;
+      --border:    rgba(255,255,255,.08);
+      --teal:      #0fd6c2;
+      --teal-dim:  #0ab8a6;
+      --amber:     #f5a623;
+      --rose:      #f5476a;
+      --text:      #e2e8f4;
+      --muted:     #7a8aaa;
+      --font:      'Outfit', sans-serif;
+      --mono:      'JetBrains Mono', monospace;
+      --radius:    12px;
+      --radius-lg: 20px;
+      --shadow:    0 8px 32px rgba(0,0,0,.4);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: var(--font);
+      background: var(--ink);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    /* ── Scrollbar ─────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--ink); }
+    ::-webkit-scrollbar-thumb { background: var(--panel); border-radius: 3px; }
+
+    /* ── Navbar ────────────────────────────────────────────────── */
+    .topnav {
+      background: var(--ink-soft);
+      border-bottom: 1px solid var(--border);
+      padding: .9rem 0;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      backdrop-filter: blur(12px);
+    }
+
+    .brand {
+      font-weight: 800;
+      font-size: 1.25rem;
+      color: var(--teal) !important;
+      text-decoration: none;
+      letter-spacing: -.5px;
+      display: flex;
+      align-items: center;
+      gap: .45rem;
+    }
+
+    .brand-dot {
+      width: 10px; height: 10px;
+      background: var(--teal);
+      border-radius: 50%;
+      display: inline-block;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%,100% { opacity: 1; transform: scale(1); }
+      50%      { opacity: .5; transform: scale(.8); }
+    }
+
+    .nav-pill {
+      color: var(--muted) !important;
+      font-size: .875rem;
+      font-weight: 500;
+      padding: .35rem .85rem;
+      border-radius: 20px;
+      transition: all .2s;
+      text-decoration: none;
+      border: 1px solid transparent;
+    }
+    .nav-pill:hover, .nav-pill.active {
+      color: var(--teal) !important;
+      border-color: var(--teal);
+      background: rgba(15,214,194,.08);
+    }
+
+    .badge-role {
+      font-family: var(--mono);
+      font-size: .65rem;
+      padding: 3px 9px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      font-weight: 500;
+    }
+    .badge-recruiter { background: rgba(245,166,35,.15); color: var(--amber); }
+    .badge-candidate { background: rgba(15,214,194,.15);  color: var(--teal); }
+
+    /* ── Main content area ─────────────────────────────────────── */
+    .main-wrap { padding: 2.5rem 0 4rem; }
+
+    /* ── Cards ─────────────────────────────────────────────────── */
+    .card-dark {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+    }
+
+    .card-dark-header {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: .75rem;
+    }
+
+    .card-dark-header h2 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin: 0;
+    }
+
+    .card-dark-body { padding: 1.5rem; }
+
+    /* ── Stats row ─────────────────────────────────────────────── */
+    .stat-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.4rem;
+      position: relative;
+      overflow: hidden;
+      transition: transform .2s, border-color .2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); border-color: var(--teal); }
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--teal), transparent);
+    }
+
+    .stat-num {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--teal);
+      line-height: 1;
+      font-family: var(--mono);
+    }
+
+    .stat-label {
+      color: var(--muted);
+      font-size: .8rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-top: .3rem;
+    }
+
+    .stat-icon {
+      position: absolute;
+      top: 1.2rem; right: 1.2rem;
+      font-size: 1.8rem;
+      opacity: .12;
+      color: var(--teal);
+    }
+
+    /* ── Buttons ────────────────────────────────────────────────── */
+    .btn-teal {
+      background: var(--teal);
+      color: var(--ink);
+      font-weight: 700;
+      border: none;
+      border-radius: 10px;
+      padding: .55rem 1.4rem;
+      font-size: .9rem;
+      transition: all .2s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+    }
+    .btn-teal:hover {
+      background: var(--teal-dim);
+      color: var(--ink);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(15,214,194,.3);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .5rem 1.2rem;
+      font-size: .875rem;
+      font-weight: 500;
+      transition: all .2s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+    }
+    .btn-ghost:hover {
+      color: var(--teal);
+      border-color: var(--teal);
+      background: rgba(15,214,194,.06);
+    }
+
+    /* ── Forms ──────────────────────────────────────────────────── */
+    .form-control, .form-select {
+      background: var(--ink-soft) !important;
+      border: 1px solid var(--border) !important;
+      color: var(--text) !important;
+      border-radius: 10px !important;
+      padding: .6rem .9rem !important;
+      font-family: var(--font);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .form-control:focus, .form-select:focus {
+      border-color: var(--teal) !important;
+      box-shadow: 0 0 0 3px rgba(15,214,194,.15) !important;
+      outline: none;
+    }
+    .form-control::placeholder { color: var(--muted) !important; }
+    .form-label {
+      color: var(--text);
+      font-weight: 600;
+      font-size: .875rem;
+      margin-bottom: .4rem;
+    }
+    .form-text { color: var(--muted); font-size: .78rem; }
+
+    /* ── Score badge ────────────────────────────────────────────── */
+    .score-ring {
+      width: 64px; height: 64px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--mono);
+      font-weight: 700;
+      font-size: 1rem;
+      border: 3px solid;
+      flex-shrink: 0;
+    }
+    .score-high   { border-color: var(--teal);  color: var(--teal);  background: rgba(15,214,194,.08); }
+    .score-mid    { border-color: var(--amber); color: var(--amber); background: rgba(245,166,35,.08); }
+    .score-low    { border-color: var(--rose);  color: var(--rose);  background: rgba(245,71,106,.08); }
+    .score-pending{ border-color: var(--muted); color: var(--muted); background: transparent; }
+
+    /* ── Skill pills ────────────────────────────────────────────── */
+    .pill {
+      display: inline-block;
+      padding: 2px 10px;
+      border-radius: 20px;
+      font-size: .72rem;
+      font-weight: 600;
+      font-family: var(--mono);
+      white-space: nowrap;
+    }
+    .pill-teal    { background: rgba(15,214,194,.12); color: var(--teal); border: 1px solid rgba(15,214,194,.25); }
+    .pill-amber   { background: rgba(245,166,35,.12); color: var(--amber);border: 1px solid rgba(245,166,35,.25); }
+    .pill-rose    { background: rgba(245,71,106,.12); color: var(--rose); border: 1px solid rgba(245,71,106,.25); }
+    .pill-muted   { background: rgba(122,138,170,.1); color: var(--muted);border: 1px solid var(--border); }
+
+    /* ── Table ──────────────────────────────────────────────────── */
+    .dark-table { width: 100%; border-collapse: separate; border-spacing: 0; }
+    .dark-table thead th {
+      color: var(--muted);
+      font-size: .72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      padding: .85rem 1rem;
+      border-bottom: 1px solid var(--border);
+      white-space: nowrap;
+    }
+    .dark-table tbody td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border);
+      vertical-align: middle;
+      color: var(--text);
+    }
+    .dark-table tbody tr:last-child td { border-bottom: none; }
+    .dark-table tbody tr {
+      transition: background .15s;
+    }
+    .dark-table tbody tr:hover { background: rgba(255,255,255,.02); }
+
+    /* ── Alerts ─────────────────────────────────────────────────── */
+    .alert-dark {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      padding: 1rem 1.25rem;
+      font-size: .9rem;
+    }
+    .alert-dark.success { border-color: rgba(15,214,194,.3); }
+    .alert-dark.warning { border-color: rgba(245,166,35,.3); }
+    .alert-dark.danger  { border-color: rgba(245,71,106,.3); }
+
+    /* ── Progress bar ────────────────────────────────────────────── */
+    .progress-dark {
+      background: var(--ink-soft);
+      border-radius: 4px;
+      height: 6px;
+      overflow: hidden;
+    }
+    .progress-dark-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width .8s ease;
+    }
+
+    /* ── Toast messages ─────────────────────────────────────────── */
+    .toast-area {
+      position: fixed;
+      bottom: 1.5rem;
+      right: 1.5rem;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      gap: .5rem;
+    }
+    .toast-msg {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: .9rem 1.2rem;
+      font-size: .875rem;
+      font-weight: 500;
+      max-width: 340px;
+      animation: toastIn .3s ease;
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+    .toast-msg.success { border-color: rgba(15,214,194,.4);  color: var(--teal); }
+    .toast-msg.warning { border-color: rgba(245,166,35,.4);  color: var(--amber); }
+    .toast-msg.error   { border-color: rgba(245,71,106,.4);  color: var(--rose); }
+    .toast-msg.info    { border-color: rgba(122,138,170,.4); color: var(--muted); }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Page header ────────────────────────────────────────────── */
+    .page-hdr {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    .page-hdr h1 {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .page-hdr p { color: var(--muted); margin: 0; font-size: .925rem; }
+
+    /* ── Auth wrapper ────────────────────────────────────────────── */
+    .auth-bg {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      background: var(--ink);
+      background-image:
+        radial-gradient(ellipse at 10% 20%, rgba(15,214,194,.06) 0%, transparent 50%),
+        radial-gradient(ellipse at 90% 80%, rgba(245,166,35,.04) 0%, transparent 50%);
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 460px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+      padding: 2.5rem;
+    }
+
+    /* ── Empty state ─────────────────────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 4rem 2rem;
+      color: var(--muted);
+    }
+    .empty-state i { font-size: 3.5rem; opacity: .25; }
+    .empty-state h3 { color: var(--text); margin: 1rem 0 .5rem; font-size: 1.2rem; }
+
+    /* ── Responsive tweaks ────────────────────────────────────────── */
+    @media (max-width: 767px) {
+      .stat-num { font-size: 1.6rem; }
+      .main-wrap { padding: 1.5rem 0 3rem; }
+    }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+{% block navbar %}
+<nav class="topnav">
+  <div class="container d-flex align-items-center justify-content-between gap-3">
+    <a href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'landing' %}{% endif %}"
+       class="brand">
+      <span class="brand-dot"></span>TalentAI
+    </a>
+
+    {% if user.is_authenticated %}
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      {% if user.is_recruiter %}
+        <a href="{% url 'recruiter_dashboard' %}" class="nav-pill">
+          <i class="bi bi-speedometer2 me-1"></i>Dashboard
+        </a>
+        <a href="{% url 'job_create' %}" class="nav-pill">
+          <i class="bi bi-plus-circle me-1"></i>Post Job
+        </a>
+      {% else %}
+        <a href="{% url 'candidate_dashboard' %}" class="nav-pill">
+          <i class="bi bi-search me-1"></i>Browse Jobs
+        </a>
+        <a href="{% url 'my_applications' %}" class="nav-pill">
+          <i class="bi bi-file-text me-1"></i>My Applications
+        </a>
+      {% endif %}
+    </div>
+
+    <div class="d-flex align-items-center gap-3">
+      <span class="badge-role {% if user.is_recruiter %}badge-recruiter{% else %}badge-candidate{% endif %}">
+        {{ user.get_role_display }}
+      </span>
+      <span class="d-none d-md-inline" style="color:var(--muted);font-size:.85rem">
+        <i class="bi bi-person-circle me-1"></i>{{ user.username }}
+      </span>
+      <form method="post" action="{% url 'logout' %}" class="m-0">
+        {% csrf_token %}
+        <button class="btn-ghost" style="padding:.35rem .9rem;font-size:.82rem">
+          <i class="bi bi-box-arrow-right"></i>
+          <span class="d-none d-sm-inline">Logout</span>
+        </button>
+      </form>
+    </div>
+    {% else %}
+    <div class="d-flex gap-2">
+      <a href="{% url 'login' %}" class="btn-ghost">Sign In</a>
+      <a href="{% url 'register' %}" class="btn-teal">Get Started</a>
+    </div>
+    {% endif %}
+  </div>
+</nav>
+{% endblock %}
+
+<!-- Flash messages -->
+{% if messages %}
+<div class="toast-area" id="toastArea">
+  {% for msg in messages %}
+  <div class="toast-msg {% if msg.tags == 'success' %}success{% elif msg.tags == 'warning' %}warning{% elif msg.tags == 'error' or msg.tags == 'danger' %}error{% else %}info{% endif %}">
+    <i class="bi bi-{% if msg.tags == 'success' %}check-circle-fill{% elif msg.tags == 'warning' %}exclamation-triangle-fill{% elif msg.tags == 'error' or msg.tags == 'danger' %}x-circle-fill{% else %}info-circle-fill{% endif %}"></i>
+    {{ msg }}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<main class="main-wrap">
+  {% block content %}{% endblock %}
+</main>
+
+<footer style="border-top:1px solid var(--border);padding:1.5rem 0;text-align:center;">
+  <span style="color:var(--muted);font-size:.8rem">
+    TalentAI &mdash; NLP-Powered Resume Screening &middot; Built with Django + NLTK + scikit-learn
+  </span>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Auto-dismiss toasts after 5 s
+  setTimeout(() => {
+    const area = document.getElementById('toastArea');
+    if (area) area.style.display = 'none';
+  }, 5000);
+</script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

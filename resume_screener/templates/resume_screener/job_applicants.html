@@ -1,0 +1,335 @@
+{% extends 'resume_screener/base.html' %}
+{% block title %}Applicants — {{ job.title }}{% endblock %}
+
+{% block content %}
+<div class="container">
+
+  <!-- Header -->
+  <div class="page-hdr">
+    <nav style="font-size:.82rem;color:var(--muted);margin-bottom:.5rem">
+      <a href="{% url 'recruiter_dashboard' %}" style="color:var(--muted);text-decoration:none">Dashboard</a>
+      <span class="mx-2">›</span>
+      <span style="color:var(--text)">{{ job.title }}</span>
+    </nav>
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+      <div>
+        <h1>
+          <i class="bi bi-bar-chart-line me-2" style="color:var(--teal)"></i>
+          {{ job.title }}
+        </h1>
+        <p style="margin-top:.3rem">
+          {% if job.company %}<span>{{ job.company }}</span> &middot; {% endif %}
+          <span><i class="bi bi-geo-alt me-1"></i>{{ job.location }}</span>
+          &middot;
+          {% if job.is_active %}
+            <span style="color:var(--teal)"><i class="bi bi-circle-fill me-1" style="font-size:.45rem;vertical-align:middle"></i>Active</span>
+          {% else %}
+            <span style="color:var(--muted)">Closed</span>
+          {% endif %}
+        </p>
+      </div>
+      <a href="{% url 'job_edit' job.pk %}" class="btn-ghost">
+        <i class="bi bi-pencil"></i>Edit Job
+      </a>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-num">{{ total }}</div>
+        <div class="stat-label">Total Applicants</div>
+        <i class="bi bi-people stat-icon"></i>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--teal)">{{ shortlisted }}</div>
+        <div class="stat-label">Shortlisted ≥ 70%</div>
+        <i class="bi bi-star stat-icon"></i>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--amber)">{{ avg_score }}%</div>
+        <div class="stat-label">Avg AI Score</div>
+        <i class="bi bi-graph-up stat-icon"></i>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-card">
+        <div class="stat-num" style="color:var(--muted)">
+          {{ job.get_required_skills_list|length }}
+        </div>
+        <div class="stat-label">Skills Required</div>
+        <i class="bi bi-lightning-charge stat-icon"></i>
+      </div>
+    </div>
+  </div>
+
+  <!-- Required skills reference strip -->
+  <div class="card-dark mb-4" style="border-radius:12px">
+    <div class="card-dark-body" style="padding:1rem 1.5rem">
+      <span style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-right:.75rem">
+        <i class="bi bi-lightning-charge-fill me-1" style="color:var(--teal)"></i>Required Skills
+      </span>
+      {% for skill in job.get_required_skills_list %}
+        <span class="pill pill-teal me-1">{{ skill }}</span>
+      {% empty %}
+        <span style="color:var(--muted);font-size:.85rem">None listed</span>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="card-dark mb-4" style="border-radius:12px">
+    <div class="card-dark-body" style="padding:1rem 1.5rem">
+      <form method="get" style="display:flex;gap:.75rem;align-items:flex-end;flex-wrap:wrap">
+        <div>
+          <label class="form-label" style="font-size:.78rem">Min Score</label>
+          <select name="min_score" class="form-select" style="width:auto;min-width:130px">
+            <option value="">All candidates</option>
+            <option value="90" {% if min_score == "90" %}selected{% endif %}>≥ 90% Excellent</option>
+            <option value="70" {% if min_score == "70" %}selected{% endif %}>≥ 70% Shortlisted</option>
+            <option value="50" {% if min_score == "50" %}selected{% endif %}>≥ 50% Fair</option>
+          </select>
+        </div>
+        <div>
+          <label class="form-label" style="font-size:.78rem">Status</label>
+          <select name="status" class="form-select" style="width:auto;min-width:140px">
+            <option value="">All statuses</option>
+            {% for val, label in status_choices %}
+              <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div style="display:flex;gap:.5rem;padding-bottom:1px">
+          <button type="submit" class="btn-teal" style="padding:.5rem 1.2rem">
+            <i class="bi bi-funnel"></i>Filter
+          </button>
+          <a href="{% url 'job_applicants' job.pk %}" class="btn-ghost" style="padding:.5rem 1rem">
+            Clear
+          </a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Ranked applicant table -->
+  {% if applications %}
+  <div class="card-dark">
+    <div class="card-dark-header">
+      <h2>
+        <i class="bi bi-trophy me-2" style="color:var(--teal)"></i>
+        Ranked Applicants
+        <span style="color:var(--muted);font-weight:400;font-size:.85rem;margin-left:.5rem">
+          sorted by AI match score, highest first
+        </span>
+      </h2>
+      <!-- Score legend -->
+      <div style="display:flex;gap:1rem;font-size:.75rem">
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--teal);margin-right:4px"></span><span style="color:var(--muted)">≥70% Shortlisted</span></span>
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--amber);margin-right:4px"></span><span style="color:var(--muted)">45–69% Fair</span></span>
+        <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--rose);margin-right:4px"></span><span style="color:var(--muted)">&lt;45% Low</span></span>
+      </div>
+    </div>
+
+    <div style="overflow-x:auto">
+      <table class="dark-table">
+        <thead>
+          <tr>
+            <th style="width:40px">#</th>
+            <th>Candidate</th>
+            <th class="text-center" style="width:90px">AI Score</th>
+            <th class="text-center" style="width:90px">Skill Match</th>
+            <th class="text-center" style="width:90px">Semantic</th>
+            <th>Matched Skills</th>
+            <th>Missing Skills</th>
+            <th class="text-center">Status</th>
+            <th class="text-center">Applied</th>
+            <th class="text-center">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for app in applications %}
+          <tr>
+
+            <!-- Rank -->
+            <td>
+              <span style="font-family:var(--mono);font-size:.8rem;color:var(--muted);font-weight:600">
+                {% if app.is_shortlisted and forloop.counter <= 3 %}
+                  <i class="bi bi-trophy-fill" style="color:{% if forloop.counter == 1 %}#ffd700{% elif forloop.counter == 2 %}#c0c0c0{% else %}#cd7f32{% endif %}"></i>
+                {% else %}
+                  {{ forloop.counter }}
+                {% endif %}
+              </span>
+            </td>
+
+            <!-- Candidate info -->
+            <td>
+              <div style="font-weight:700;color:#fff">
+                {{ app.candidate.get_full_name|default:app.candidate.username }}
+              </div>
+              <div style="font-size:.75rem;color:var(--muted)">
+                @{{ app.candidate.username }}
+                {% if app.candidate.email %}&middot; {{ app.candidate.email }}{% endif %}
+              </div>
+            </td>
+
+            <!-- Overall AI score ring -->
+            <td class="text-center">
+              {% if app.match_score is not None %}
+                <div class="score-ring mx-auto
+                  {% if app.match_score >= 70 %}score-high
+                  {% elif app.match_score >= 45 %}score-mid
+                  {% else %}score-low{% endif %}"
+                     style="width:56px;height:56px;font-size:.9rem">
+                  {{ app.match_score|floatformat:0 }}%
+                </div>
+                <!-- Progress bar under score -->
+                <div class="progress-dark mt-1" style="height:4px">
+                  <div class="progress-dark-fill"
+                       style="width:{{ app.match_score|floatformat:0 }}%;
+                              background:{% if app.match_score >= 70 %}var(--teal){% elif app.match_score >= 45 %}var(--amber){% else %}var(--rose){% endif %}">
+                  </div>
+                </div>
+              {% else %}
+                <div class="score-ring score-pending mx-auto" style="width:56px;height:56px;font-size:.7rem">
+                  <i class="bi bi-hourglass-split"></i>
+                </div>
+              {% endif %}
+            </td>
+
+            <!-- Skill score -->
+            <td class="text-center">
+              {% if app.skill_score is not None %}
+                <span style="font-family:var(--mono);font-weight:700;font-size:.9rem;
+                  color:{% if app.skill_score >= 70 %}var(--teal){% elif app.skill_score >= 45 %}var(--amber){% else %}var(--rose){% endif %}">
+                  {{ app.skill_score|floatformat:0 }}%
+                </span>
+                <div style="font-size:.65rem;color:var(--muted);margin-top:1px">skill overlap</div>
+              {% else %}
+                <span style="color:var(--muted)">—</span>
+              {% endif %}
+            </td>
+
+            <!-- TF-IDF semantic score -->
+            <td class="text-center">
+              {% if app.tfidf_score is not None %}
+                <span style="font-family:var(--mono);font-weight:700;font-size:.9rem;
+                  color:{% if app.tfidf_score >= 70 %}var(--teal){% elif app.tfidf_score >= 45 %}var(--amber){% else %}var(--rose){% endif %}">
+                  {{ app.tfidf_score|floatformat:0 }}%
+                </span>
+                <div style="font-size:.65rem;color:var(--muted);margin-top:1px">TF-IDF</div>
+              {% else %}
+                <span style="color:var(--muted)">—</span>
+              {% endif %}
+            </td>
+
+            <!-- Matched skills -->
+            <td style="max-width:200px">
+              {% if app.matched_skills %}
+                <div style="display:flex;flex-wrap:wrap;gap:3px">
+                  {% for skill in app.matched_skills|slice:":5" %}
+                    <span class="pill pill-teal">
+                      <i class="bi bi-check me-1"></i>{{ skill }}
+                    </span>
+                  {% endfor %}
+                  {% if app.matched_skills|length > 5 %}
+                    <span class="pill pill-muted">+{{ app.matched_skills|length|add:"-5" }}</span>
+                  {% endif %}
+                </div>
+              {% else %}
+                <span style="color:var(--muted);font-size:.8rem">—</span>
+              {% endif %}
+            </td>
+
+            <!-- Missing skills -->
+            <td style="max-width:200px">
+              {% if app.missing_skills %}
+                <div style="display:flex;flex-wrap:wrap;gap:3px">
+                  {% for skill in app.missing_skills|slice:":4" %}
+                    <span class="pill pill-rose">
+                      <i class="bi bi-x me-1"></i>{{ skill }}
+                    </span>
+                  {% endfor %}
+                  {% if app.missing_skills|length > 4 %}
+                    <span class="pill pill-muted">+{{ app.missing_skills|length|add:"-4" }}</span>
+                  {% endif %}
+                </div>
+              {% elif app.match_score is not None %}
+                <span style="color:var(--teal);font-size:.8rem;font-weight:600">
+                  <i class="bi bi-check-circle me-1"></i>None missing
+                </span>
+              {% else %}
+                <span style="color:var(--muted);font-size:.8rem">—</span>
+              {% endif %}
+            </td>
+
+            <!-- Status -->
+            <td class="text-center">
+              {% if app.status == 'shortlisted' %}
+                <span class="pill pill-teal">Shortlisted</span>
+              {% elif app.status == 'hired' %}
+                <span class="pill" style="background:rgba(15,214,194,.2);color:var(--teal);border:1px solid var(--teal)">Hired</span>
+              {% elif app.status == 'rejected' %}
+                <span class="pill pill-rose">Rejected</span>
+              {% elif app.status == 'analysed' %}
+                <span class="pill pill-amber">Analysed</span>
+              {% else %}
+                <span class="pill pill-muted">Pending</span>
+              {% endif %}
+            </td>
+
+            <!-- Applied date -->
+            <td class="text-center" style="font-size:.78rem;color:var(--muted);white-space:nowrap">
+              {{ app.applied_at|date:"M d, Y" }}
+            </td>
+
+            <!-- Detail link -->
+            <td class="text-center">
+              <a href="{% url 'application_detail' app.pk %}" class="btn-ghost"
+                 style="padding:.3rem .8rem;font-size:.78rem">
+                <i class="bi bi-eye"></i>Detail
+              </a>
+            </td>
+
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Table footer -->
+    <div style="padding:.75rem 1.5rem;border-top:1px solid var(--border);
+                font-size:.78rem;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
+      <span>
+        <i class="bi bi-info-circle me-1"></i>
+        Ranked by combined score: 60% skill overlap + 40% TF-IDF semantic similarity
+      </span>
+      <span>
+        <span style="color:var(--teal);font-weight:700">{{ shortlisted }}</span>
+        candidate{{ shortlisted|pluralize }} scored ≥70%
+      </span>
+    </div>
+  </div>
+
+  {% else %}
+  <div class="card-dark">
+    <div class="empty-state">
+      <i class="bi bi-inbox"></i>
+      <h3>No applications yet</h3>
+      <p style="color:var(--muted)">
+        {% if min_score or status_filter %}
+          No candidates match your current filters. <a href="{% url 'job_applicants' job.pk %}" style="color:var(--teal)">Clear filters</a>
+        {% else %}
+          Candidates will appear here once they submit their resumes.
+        {% endif %}
+      </p>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

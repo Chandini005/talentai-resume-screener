@@ -1,0 +1,227 @@
+{% extends 'resume_screener/base.html' %}
+{% block title %}Application Detail — {{ app.candidate.username }}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:900px">
+
+  <!-- Header -->
+  <div class="page-hdr">
+    <nav style="font-size:.82rem;color:var(--muted);margin-bottom:.5rem">
+      <a href="{% url 'recruiter_dashboard' %}" style="color:var(--muted);text-decoration:none">Dashboard</a>
+      <span class="mx-2">›</span>
+      <a href="{% url 'job_applicants' app.job_posting.pk %}" style="color:var(--muted);text-decoration:none">{{ app.job_posting.title }}</a>
+      <span class="mx-2">›</span>
+      <span style="color:var(--text)">{{ app.candidate.username }}</span>
+    </nav>
+    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+      <div>
+        <h1>
+          <i class="bi bi-person-badge me-2" style="color:var(--teal)"></i>
+          {{ app.candidate.get_full_name|default:app.candidate.username }}
+        </h1>
+        <p>Applied for <strong style="color:var(--text)">{{ app.job_posting.title }}</strong>
+          &middot; {{ app.applied_at|date:"M d, Y · H:i" }}</p>
+      </div>
+      <!-- Big score -->
+      <div style="text-align:center">
+        <div class="score-ring
+          {% if app.match_score >= 70 %}score-high{% elif app.match_score >= 45 %}score-mid{% else %}score-low{% endif %}"
+             style="width:90px;height:90px;font-size:1.4rem;margin:0 auto">
+          {% if app.match_score is not None %}{{ app.match_score|floatformat:1 }}%
+          {% else %}<i class="bi bi-hourglass-split"></i>{% endif %}
+        </div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:.4rem;font-weight:600">
+          {{ app.score_label|upper }}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Score breakdown -->
+  <div class="row g-3 mb-4">
+    <div class="col-md-4">
+      <div class="stat-card" style="text-align:center">
+        <div style="font-size:.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">
+          Overall AI Score
+        </div>
+        <div style="font-size:2.5rem;font-weight:900;color:{% if app.match_score >= 70 %}var(--teal){% elif app.match_score >= 45 %}var(--amber){% else %}var(--rose){% endif %};font-family:var(--mono)">
+          {% if app.match_score is not None %}{{ app.match_score|floatformat:1 }}%{% else %}—{% endif %}
+        </div>
+        <div style="color:var(--muted);font-size:.78rem">60% skill + 40% semantic</div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card" style="text-align:center">
+        <div style="font-size:.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">
+          Skill Overlap Score
+        </div>
+        <div style="font-size:2.5rem;font-weight:900;color:var(--amber);font-family:var(--mono)">
+          {% if app.skill_score is not None %}{{ app.skill_score|floatformat:1 }}%{% else %}—{% endif %}
+        </div>
+        <div style="color:var(--muted);font-size:.78rem">
+          {{ app.matched_skills|length }} / {{ app.matched_skills|length|add:app.missing_skills|length }} skills matched
+        </div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="stat-card" style="text-align:center">
+        <div style="font-size:.72rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:.5rem">
+          Semantic Similarity
+        </div>
+        <div style="font-size:2.5rem;font-weight:900;color:var(--teal);font-family:var(--mono)">
+          {% if app.tfidf_score is not None %}{{ app.tfidf_score|floatformat:1 }}%{% else %}—{% endif %}
+        </div>
+        <div style="color:var(--muted);font-size:.78rem">TF-IDF cosine similarity</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- Left column: Skills + NLP summary -->
+    <div class="col-lg-7">
+
+      <!-- Matched skills -->
+      <div class="card-dark mb-3">
+        <div class="card-dark-header">
+          <h2><i class="bi bi-check-circle me-2" style="color:var(--teal)"></i>Matched Skills</h2>
+          <span style="font-family:var(--mono);font-size:.78rem;color:var(--teal)">
+            {{ app.matched_skills|length }} found
+          </span>
+        </div>
+        <div class="card-dark-body">
+          {% if app.matched_skills %}
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              {% for skill in app.matched_skills %}
+                <span class="pill pill-teal" style="font-size:.78rem;padding:4px 12px">
+                  <i class="bi bi-check-lg me-1"></i>{{ skill }}
+                </span>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p style="color:var(--muted);font-size:.875rem;margin:0">No required skills detected in the resume.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Missing skills -->
+      <div class="card-dark mb-3">
+        <div class="card-dark-header">
+          <h2><i class="bi bi-x-circle me-2" style="color:var(--rose)"></i>Missing Skills</h2>
+          <span style="font-family:var(--mono);font-size:.78rem;color:var(--rose)">
+            {{ app.missing_skills|length }} absent
+          </span>
+        </div>
+        <div class="card-dark-body">
+          {% if app.missing_skills %}
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              {% for skill in app.missing_skills %}
+                <span class="pill pill-rose" style="font-size:.78rem;padding:4px 12px">
+                  <i class="bi bi-x-lg me-1"></i>{{ skill }}
+                </span>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p style="color:var(--teal);font-size:.875rem;margin:0;font-weight:600">
+              <i class="bi bi-trophy me-1"></i>All required skills are present — outstanding coverage!
+            </p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- All candidate skills -->
+      {% if app.candidate_skills %}
+      <div class="card-dark mb-3">
+        <div class="card-dark-header">
+          <h2><i class="bi bi-cpu me-2" style="color:var(--muted)"></i>All Detected Skills</h2>
+          <span style="font-family:var(--mono);font-size:.78rem;color:var(--muted)">
+            {{ app.candidate_skills|length }} total
+          </span>
+        </div>
+        <div class="card-dark-body">
+          <div style="display:flex;flex-wrap:wrap;gap:5px">
+            {% for skill in app.candidate_skills %}
+              <span class="pill pill-muted" style="font-size:.75rem">{{ skill }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- NLP Summary -->
+      {% if app.nlp_summary %}
+      <div class="card-dark">
+        <div class="card-dark-header">
+          <h2><i class="bi bi-robot me-2" style="color:var(--teal)"></i>NLP Analysis Summary</h2>
+        </div>
+        <div class="card-dark-body">
+          <p style="color:var(--text);font-size:.9rem;line-height:1.8;white-space:pre-line;margin:0">
+            {{ app.nlp_summary }}
+          </p>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+
+    <!-- Right column: Status + resume + cover letter -->
+    <div class="col-lg-5">
+
+      <!-- Resume download -->
+      <div class="card-dark mb-3">
+        <div class="card-dark-header">
+          <h2><i class="bi bi-file-earmark-pdf me-2" style="color:var(--rose)"></i>Resume File</h2>
+        </div>
+        <div class="card-dark-body" style="text-align:center;padding:1.5rem">
+          <i class="bi bi-file-earmark-pdf" style="font-size:3rem;color:var(--rose);opacity:.7"></i>
+          <div style="margin:.75rem 0;font-size:.85rem;color:var(--muted)">
+            {{ app.resume_file.name|cut:"resumes/" }}
+          </div>
+          <a href="{{ app.resume_file.url }}" target="_blank" class="btn-teal"
+             style="display:inline-flex;padding:.55rem 1.5rem">
+            <i class="bi bi-download"></i>Download Resume
+          </a>
+        </div>
+      </div>
+
+      <!-- Recruiter status & notes -->
+      <div class="card-dark mb-3">
+        <div class="card-dark-header">
+          <h2><i class="bi bi-pencil-square me-2" style="color:var(--amber)"></i>Review & Status</h2>
+        </div>
+        <div class="card-dark-body">
+          <form method="post">
+            {% csrf_token %}
+            <div class="mb-3">
+              <label class="form-label">Application Status</label>
+              {{ notes_form.status }}
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Recruiter Notes</label>
+              {{ notes_form.recruiter_notes }}
+            </div>
+            <button type="submit" class="btn-teal" style="padding:.5rem 1.5rem">
+              <i class="bi bi-check-circle"></i>Save
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Cover letter -->
+      {% if app.cover_letter %}
+      <div class="card-dark">
+        <div class="card-dark-header">
+          <h2><i class="bi bi-chat-quote me-2" style="color:var(--muted)"></i>Cover Letter</h2>
+        </div>
+        <div class="card-dark-body">
+          <p style="color:var(--text);font-size:.875rem;line-height:1.7;white-space:pre-line;margin:0">
+            {{ app.cover_letter }}
+          </p>
+        </div>
+      </div>
+      {% endif %}
+
+    </div>
+  </div>
+</div>
+{% endblock %}

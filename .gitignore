@@ -1,0 +1,25 @@
+.venv/
+venv/
+
+# Django
+*.pyc
+__pycache__/
+db.sqlite3
+staticfiles/
+
+# Media uploads (user files — don't commit these)
+media/resumes/
+
+# Environment variables
+.env
+*.env
+
+# Windows
+Thumbs.db
+desktop.ini
+
+# VS Code
+.vscode/
+
+# PyCharm
+.idea/

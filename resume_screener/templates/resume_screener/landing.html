@@ -1,0 +1,79 @@
+{% extends 'resume_screener/base.html' %}
+{% block title %}Home{% endblock %}
+{% block content %}
+
+<div style="background:radial-gradient(ellipse at 50% 0%, rgba(15,214,194,.08) 0%, transparent 60%); padding: 5rem 0 4rem; text-align:center;">
+  <div class="container" style="max-width:700px">
+    <span class="pill pill-teal mb-3 d-inline-block" style="font-size:.8rem">
+      <i class="bi bi-cpu me-1"></i>NLP-Powered · No API keys required
+    </span>
+    <h1 style="font-size:clamp(2.2rem,5vw,3.5rem);font-weight:900;line-height:1.1;color:#fff;margin:.75rem 0 1.25rem">
+      Hire smarter with<br><span style="color:var(--teal)">AI-driven</span> resume screening
+    </h1>
+    <p style="color:var(--muted);font-size:1.1rem;margin-bottom:2rem">
+      Upload resumes. Run NLP analysis. Get ranked candidates instantly — scored by skill overlap and semantic similarity.
+    </p>
+    <div class="d-flex gap-3 justify-content-center flex-wrap">
+      <a href="{% url 'register' %}" class="btn-teal" style="padding:.75rem 2rem;font-size:1rem">
+        <i class="bi bi-rocket-takeoff"></i>Get Started Free
+      </a>
+      <a href="{% url 'login' %}" class="btn-ghost" style="padding:.75rem 2rem;font-size:1rem">
+        Sign In
+      </a>
+    </div>
+
+    <div class="row g-3 mt-5">
+      <div class="col-4">
+        <div style="color:var(--teal);font-size:2rem;font-weight:800;font-family:var(--mono)">{{ total_jobs }}+</div>
+        <div style="color:var(--muted);font-size:.85rem">Active Jobs</div>
+      </div>
+      <div class="col-4">
+        <div style="color:var(--teal);font-size:2rem;font-weight:800;font-family:var(--mono)">{{ total_apps }}+</div>
+        <div style="color:var(--muted);font-size:.85rem">Resumes Analysed</div>
+      </div>
+      <div class="col-4">
+        <div style="color:var(--teal);font-size:2rem;font-weight:800;font-family:var(--mono)">100+</div>
+        <div style="color:var(--muted);font-size:.85rem">Skills Detected</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container py-5" style="max-width:900px">
+  <h2 style="text-align:center;font-weight:800;margin-bottom:2.5rem;font-size:1.5rem">
+    How it works
+  </h2>
+  <div class="row g-4">
+    {% for step in "0123" %}{% endfor %}
+    <div class="col-md-3 text-center">
+      <div style="width:52px;height:52px;background:rgba(15,214,194,.12);border:1px solid rgba(15,214,194,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.4rem;color:var(--teal)">
+        <i class="bi bi-person-plus"></i>
+      </div>
+      <h3 style="font-size:.95rem;font-weight:700;margin-bottom:.4rem">1. Register</h3>
+      <p style="color:var(--muted);font-size:.83rem">Create a Recruiter or Candidate account in 30 seconds.</p>
+    </div>
+    <div class="col-md-3 text-center">
+      <div style="width:52px;height:52px;background:rgba(15,214,194,.12);border:1px solid rgba(15,214,194,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.4rem;color:var(--teal)">
+        <i class="bi bi-briefcase"></i>
+      </div>
+      <h3 style="font-size:.95rem;font-weight:700;margin-bottom:.4rem">2. Post a Job</h3>
+      <p style="color:var(--muted);font-size:.83rem">Recruiters add job descriptions and required skills.</p>
+    </div>
+    <div class="col-md-3 text-center">
+      <div style="width:52px;height:52px;background:rgba(15,214,194,.12);border:1px solid rgba(15,214,194,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.4rem;color:var(--teal)">
+        <i class="bi bi-file-earmark-arrow-up"></i>
+      </div>
+      <h3 style="font-size:.95rem;font-weight:700;margin-bottom:.4rem">3. Apply</h3>
+      <p style="color:var(--muted);font-size:.83rem">Candidates upload PDF/DOCX resumes and get instant NLP scores.</p>
+    </div>
+    <div class="col-md-3 text-center">
+      <div style="width:52px;height:52px;background:rgba(15,214,194,.12);border:1px solid rgba(15,214,194,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.4rem;color:var(--teal)">
+        <i class="bi bi-bar-chart-line"></i>
+      </div>
+      <h3 style="font-size:.95rem;font-weight:700;margin-bottom:.4rem">4. Review</h3>
+      <p style="color:var(--muted);font-size:.83rem">Recruiters see a ranked table with matched/missing skills.</p>
+    </div>
+  </div>
+</div>
+
+{% endblock %}

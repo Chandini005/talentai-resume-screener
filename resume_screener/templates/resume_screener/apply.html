@@ -1,0 +1,204 @@
+{% extends 'resume_screener/base.html' %}
+{% block title %}Apply — {{ job.title }}{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width:860px">
+
+  <!-- Breadcrumb + header -->
+  <div class="page-hdr">
+    <nav style="font-size:.82rem;color:var(--muted);margin-bottom:.5rem">
+      <a href="{% url 'candidate_dashboard' %}" style="color:var(--muted);text-decoration:none">Browse Jobs</a>
+      <span class="mx-2">›</span>
+      <span style="color:var(--text)">Apply</span>
+    </nav>
+    <h1>
+      <i class="bi bi-send me-2" style="color:var(--teal)"></i>
+      Apply: <span style="color:var(--teal)">{{ job.title }}</span>
+    </h1>
+    <p>
+      {% if job.company %}<i class="bi bi-building me-1"></i>{{ job.company }} &middot; {% endif %}
+      <i class="bi bi-geo-alt me-1"></i>{{ job.location }}
+      &middot; {{ job.get_experience_level_display }}
+    </p>
+  </div>
+
+  <div class="row g-4">
+
+    <!-- Upload form -->
+    <div class="col-lg-7">
+      <form method="post" enctype="multipart/form-data" id="applyForm"
+            action="{% url 'apply_job' job.pk %}">
+        {% csrf_token %}
+
+        <div class="card-dark mb-3">
+          <div class="card-dark-header">
+            <h2><i class="bi bi-file-earmark-arrow-up me-2" style="color:var(--teal)"></i>Upload Resume</h2>
+          </div>
+          <div class="card-dark-body">
+
+            <!-- Drop zone -->
+            <div id="dropZone"
+                 style="border:2px dashed rgba(15,214,194,.3);border-radius:14px;
+                        padding:2.5rem 1.5rem;text-align:center;cursor:pointer;
+                        background:rgba(15,214,194,.03);transition:all .2s;position:relative"
+                 onclick="document.getElementById('id_resume_file').click()">
+              <i class="bi bi-file-earmark-pdf" style="font-size:2.8rem;color:var(--teal);opacity:.6"></i>
+              <p style="color:var(--text);font-weight:700;margin:.75rem 0 .3rem;font-size:1rem">
+                Click or drag your resume here
+              </p>
+              <p style="color:var(--muted);font-size:.82rem;margin:0">
+                PDF or DOCX &bull; Max 10 MB &bull; Text-based PDFs give best scores
+              </p>
+              <!-- Hidden input — fills the full drop zone -->
+              <div style="position:absolute;inset:0;opacity:0;cursor:pointer">
+                {{ form.resume_file }}
+              </div>
+            </div>
+
+            <!-- File name preview -->
+            <div id="filePreview" style="display:none;margin-top:.75rem;
+                  background:rgba(15,214,194,.08);border:1px solid rgba(15,214,194,.25);
+                  border-radius:10px;padding:.65rem 1rem;
+                  display:none;align-items:center;gap:.6rem">
+              <i class="bi bi-file-earmark-check" style="color:var(--teal);font-size:1.1rem"></i>
+              <span id="fileName" style="color:var(--teal);font-weight:600;font-size:.875rem"></span>
+            </div>
+
+            {% if form.resume_file.errors %}
+            <div style="background:rgba(245,71,106,.08);border:1px solid rgba(245,71,106,.3);
+                        border-radius:10px;padding:.65rem 1rem;margin-top:.75rem;
+                        color:var(--rose);font-size:.82rem">
+              <i class="bi bi-x-circle me-1"></i>{{ form.resume_file.errors.0 }}
+            </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Cover letter -->
+        <div class="card-dark mb-4">
+          <div class="card-dark-header">
+            <h2><i class="bi bi-chat-quote me-2" style="color:var(--muted)"></i>Cover Letter
+              <span style="font-size:.75rem;font-weight:400;color:var(--muted)">(optional)</span>
+            </h2>
+          </div>
+          <div class="card-dark-body">
+            {{ form.cover_letter }}
+          </div>
+        </div>
+
+        <!-- NLP info box -->
+        <div style="background:rgba(15,214,194,.06);border:1px solid rgba(15,214,194,.2);
+                    border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem;font-size:.83rem">
+          <div style="color:var(--teal);font-weight:700;margin-bottom:.4rem">
+            <i class="bi bi-robot me-1"></i>How AI scoring works
+          </div>
+          <ul style="color:var(--muted);margin:0;padding-left:1.2rem;line-height:1.8">
+            <li>Text is extracted from your PDF/DOCX using <strong style="color:var(--text)">pdfplumber</strong></li>
+            <li><strong style="color:var(--text)">100+ skills</strong> are detected using NLP vocabulary matching</li>
+            <li><strong style="color:var(--text)">TF-IDF cosine similarity</strong> measures semantic relevance against the JD</li>
+            <li>Final score = <strong style="color:var(--text)">60% skill overlap + 40% semantic match</strong></li>
+          </ul>
+        </div>
+
+        <button type="submit" id="submitBtn" class="btn-teal"
+                style="width:100%;justify-content:center;padding:.8rem;font-size:1rem">
+          <i class="bi bi-send-fill"></i>Submit Application
+        </button>
+
+      </form>
+    </div>
+
+    <!-- Job details sidebar -->
+    <div class="col-lg-5">
+
+      <!-- Required skills -->
+      <div class="card-dark mb-3">
+        <div class="card-dark-header">
+          <h2><i class="bi bi-lightning-charge-fill me-2" style="color:var(--amber)"></i>Required Skills</h2>
+        </div>
+        <div class="card-dark-body">
+          {% if skills %}
+            <div style="display:flex;flex-wrap:wrap;gap:6px">
+              {% for skill in skills %}
+                <span class="pill pill-teal">{{ skill }}</span>
+              {% endfor %}
+            </div>
+            <p style="color:var(--muted);font-size:.75rem;margin:.75rem 0 0">
+              Match as many of these as possible in your resume for a higher score.
+            </p>
+          {% else %}
+            <p style="color:var(--muted);font-size:.875rem;margin:0">No specific skills listed.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Nice to have -->
+      {% if job.get_nice_to_have_list %}
+      <div class="card-dark mb-3">
+        <div class="card-dark-header">
+          <h2><i class="bi bi-plus-circle me-2" style="color:var(--muted)"></i>Nice to Have</h2>
+        </div>
+        <div class="card-dark-body">
+          <div style="display:flex;flex-wrap:wrap;gap:6px">
+            {% for skill in job.get_nice_to_have_list %}
+              <span class="pill pill-muted">{{ skill }}</span>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Job description -->
+      <div class="card-dark">
+        <div class="card-dark-header">
+          <h2><i class="bi bi-file-text me-2" style="color:var(--muted)"></i>Job Description</h2>
+        </div>
+        <div class="card-dark-body">
+          <div style="color:var(--muted);font-size:.83rem;line-height:1.7;
+                      max-height:320px;overflow-y:auto;white-space:pre-line">
+            {{ job.description }}
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+(function(){
+  const input   = document.getElementById('id_resume_file');
+  const zone    = document.getElementById('dropZone');
+  const preview = document.getElementById('filePreview');
+  const nameEl  = document.getElementById('fileName');
+  const btn     = document.getElementById('submitBtn');
+
+  function showFile(file) {
+    if (!file) return;
+    nameEl.textContent = file.name + ' (' + (file.size/1024).toFixed(0) + ' KB)';
+    preview.style.display = 'flex';
+    zone.style.borderColor = 'rgba(15,214,194,.6)';
+    zone.style.background  = 'rgba(15,214,194,.06)';
+  }
+
+  input.addEventListener('change', () => { if (input.files[0]) showFile(input.files[0]); });
+
+  zone.addEventListener('dragover',  e => { e.preventDefault(); zone.style.background = 'rgba(15,214,194,.1)'; });
+  zone.addEventListener('dragleave', () => { zone.style.background = 'rgba(15,214,194,.03)'; });
+  zone.addEventListener('drop', e => {
+    e.preventDefault();
+    if (e.dataTransfer.files[0]) {
+      input.files = e.dataTransfer.files;
+      showFile(e.dataTransfer.files[0]);
+    }
+  });
+
+  document.getElementById('applyForm').addEventListener('submit', () => {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analysing with NLP…';
+  });
+})();
+</script>
+{% endblock %}
