@@ -8,8 +8,8 @@ import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-resume-ai-nlp-system-change-in-production-2024'
-
+# SECRET_KEY = 'django-insecure-resume-ai-nlp-system-change-in-production-2024'
+SECRET_KEY = os.environ.get("SECRET_KEY")
 DEBUG = False
 
 ALLOWED_HOSTS = ['*']
@@ -28,7 +28,7 @@ AUTH_USER_MODEL = 'resume_screener.CustomUser'
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
-    # whitenoise removed — not needed for local development
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -36,6 +36,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
 ROOT_URLCONF = 'config.urls'
 
@@ -100,3 +101,6 @@ NLTK_DATA_PATH = BASE_DIR / 'nltk_data'
 # ── File upload limits ────────────────────────────────────────────────────────
 FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024   # 10 MB
 DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024   # 10 MB
+CSRF_TRUSTED_ORIGINS = [
+    "https://web-production-56463.up.railway.app"
+]
