@@ -10,10 +10,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = 'django-insecure-resume-ai-nlp-system-change-in-production-2024'
 
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['.up.railway.app']
-
+ALLOWED_HOSTS = ['*']
 # ── Applications ──────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -81,7 +80,7 @@ USE_TZ = True
 # ── Static files ──────────────────────────────────────────────────────────────
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'resume_screener' / 'static']
-STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATIC_ROOT = BASE_DIR / "staticfiles"
 # Using Django's default static file storage (no whitenoise needed for development)
 
 # ── Media files (uploaded resumes) ───────────────────────────────────────────

@@ -1,1 +1,1 @@
-web: gunicorn resume_screener.wsgi:application
+web: gunicorn resume_screener.wsgi:application --bind 0.0.0.0:$PORT
