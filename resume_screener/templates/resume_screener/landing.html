@@ -1,79 +1,225 @@
 {% extends 'resume_screener/base.html' %}
-{% block title %}Home{% endblock %}
-{% block content %}
+{% block title %}TalentAI · AI-Powered ATS for Modern Teams{% endblock %}
+{% block page_title %}Welcome to TalentAI{% endblock %}
 
-<div style="background:radial-gradient(ellipse at 50% 0%, rgba(15,214,194,.08) 0%, transparent 60%); padding: 5rem 0 4rem; text-align:center;">
-  <div class="container" style="max-width:700px">
-    <span class="pill pill-teal mb-3 d-inline-block" style="font-size:.8rem">
-      <i class="bi bi-cpu me-1"></i>NLP-Powered · No API keys required
-    </span>
-    <h1 style="font-size:clamp(2.2rem,5vw,3.5rem);font-weight:900;line-height:1.1;color:#fff;margin:.75rem 0 1.25rem">
-      Hire smarter with<br><span style="color:var(--teal)">AI-driven</span> resume screening
-    </h1>
-    <p style="color:var(--muted);font-size:1.1rem;margin-bottom:2rem">
-      Upload resumes. Run NLP analysis. Get ranked candidates instantly — scored by skill overlap and semantic similarity.
-    </p>
-    <div class="d-flex gap-3 justify-content-center flex-wrap">
-      <a href="{% url 'register' %}" class="btn-teal" style="padding:.75rem 2rem;font-size:1rem">
-        <i class="bi bi-rocket-takeoff"></i>Get Started Free
-      </a>
-      <a href="{% url 'login' %}" class="btn-ghost" style="padding:.75rem 2rem;font-size:1rem">
-        Sign In
-      </a>
+{% block content %}<!-- Hero Section -->
+<section class="py-5 mb-5 overflow-hidden">
+    <div class="row align-items-center g-5">
+        <div class="col-lg-6">
+            <div class="badge-pipeline shortlisted mb-3 d-inline-flex align-items-center gap-2 px-3 py-2" style="font-size: 0.75rem; border-radius: 100px;">
+                <span class="pulse-dot"></span>
+                <span class="fw-bold">Next-Gen AI Screening</span>
+            </div>
+            <h1 class="display-3 fw-900 mb-3" style="letter-spacing: -3px; line-height: 1; font-size: clamp(2.5rem, 8vw, 4rem);">
+                Hire <span class="text-gradient">Top 1%</span><br class="d-none d-md-block"> Talent with AI.
+            </h1>
+            <p class="lead text-muted mb-4 pe-lg-5" style="line-height: 1.6; font-size: clamp(1rem, 3vw, 1.25rem);">
+                Transform your recruitment workflow with our local-first NLP engine. 
+                Rank resumes instantly, detect hidden skills, and automate screening with local intelligence.
+            </p>
+            <div class="d-flex flex-wrap gap-3 mt-4">
+                <a href="{% url 'register' %}" class="btn btn-ats-primary btn-lg px-4 fs-6 shadow-glow">Start Building Pipe</a>
+                <a href="#features" class="btn btn-ats-outline btn-lg px-4 fs-6">Explore Features</a>
+            </div>
+            <div class="mt-5 d-flex flex-wrap align-items-center gap-4 text-muted small fw-600">
+                <div class="d-flex align-items-center gap-2"><i class="bi bi-shield-check text-teal"></i> Local Privacy</div>
+                <div class="d-flex align-items-center gap-2"><i class="bi bi-lightning-charge text-amber"></i> Fast Parsing</div>
+                <div class="d-flex align-items-center gap-2"><i class="bi bi-cpu text-indigo"></i> Advanced NLP</div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="hero-visual position-relative">
+                <div class="hero-card-container">
+                    <div class="card-ats p-1 shadow-2xl overflow-hidden glass-card">
+                        <img src="/media/ats_dashboard_preview_1775607351342.png" 
+                             class="img-fluid rounded-4" 
+                             alt="Dashboard Preview">
+                    </div>
+                </div>
+                <!-- Floating Elements for Interactivity -->
+                <div class="floating-badge badge-pipeline shortlisted position-absolute d-none d-sm-flex" style="top: -10px; right: 10px; animation: float 6s ease-in-out infinite; z-index: 10;">
+                    <i class="bi bi-graph-up-arrow me-2"></i> 98% Match
+                </div>
+                <div class="floating-badge badge-pipeline applied position-absolute d-none d-sm-flex" style="bottom: 20px; left: -20px; animation: float 8s ease-in-out infinite reverse; z-index: 10;">
+                    <i class="bi bi-people me-2"></i> 150+ Candidates
+                </div>
+            </div>
+        </div>
     </div>
+</section>
 
-    <div class="row g-3 mt-5">
-      <div class="col-4">
-        <div style="color:var(--teal);font-size:2rem;font-weight:800;font-family:var(--mono)">{{ total_jobs }}+</div>
-        <div style="color:var(--muted);font-size:.85rem">Active Jobs</div>
-      </div>
-      <div class="col-4">
-        <div style="color:var(--teal);font-size:2rem;font-weight:800;font-family:var(--mono)">{{ total_apps }}+</div>
-        <div style="color:var(--muted);font-size:.85rem">Resumes Analysed</div>
-      </div>
-      <div class="col-4">
-        <div style="color:var(--teal);font-size:2rem;font-weight:800;font-family:var(--mono)">100+</div>
-        <div style="color:var(--muted);font-size:.85rem">Skills Detected</div>
-      </div>
+<!-- Stats Grid -->
+<section class="py-5 mb-5">
+    <div class="card-ats bg-glass-surface border-0 p-4 p-md-5">
+        <div class="row g-4 text-center">
+            <div class="col-6 col-md-3">
+                <div class="h2 fw-900 m-0 text-gradient">{{ total_jobs }}+</div>
+                <div class="text-muted small fw-bold text-uppercase" style="letter-spacing: 1px;">Active Jobs</div>
+            </div>
+            <div class="col-6 col-md-3 border-md-start">
+                <div class="h2 fw-900 m-0 text-gradient">{{ total_apps }}+</div>
+                <div class="text-muted small fw-bold text-uppercase" style="letter-spacing: 1px;">Resumes Scanned</div>
+            </div>
+            <div class="col-6 col-md-3 border-md-start">
+                <div class="h2 fw-900 m-0 text-gradient">99.9%</div>
+                <div class="text-muted small fw-bold text-uppercase" style="letter-spacing: 1px;">Extraction Acc</div>
+            </div>
+            <div class="col-6 col-md-3 border-md-start">
+                <div class="h2 fw-900 m-0 text-gradient">2s</div>
+                <div class="text-muted small fw-bold text-uppercase" style="letter-spacing: 1px;">Analysis Speed</div>
+            </div>
+        </div>
     </div>
-  </div>
-</div>
+</section>
 
-<div class="container py-5" style="max-width:900px">
-  <h2 style="text-align:center;font-weight:800;margin-bottom:2.5rem;font-size:1.5rem">
-    How it works
-  </h2>
-  <div class="row g-4">
-    {% for step in "0123" %}{% endfor %}
-    <div class="col-md-3 text-center">
-      <div style="width:52px;height:52px;background:rgba(15,214,194,.12);border:1px solid rgba(15,214,194,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.4rem;color:var(--teal)">
-        <i class="bi bi-person-plus"></i>
-      </div>
-      <h3 style="font-size:.95rem;font-weight:700;margin-bottom:.4rem">1. Register</h3>
-      <p style="color:var(--muted);font-size:.83rem">Create a Recruiter or Candidate account in 30 seconds.</p>
+<!-- Features Grid -->
+<section id="features" class="py-5">
+    <div class="text-center mb-5">
+        <h2 class="h1 fw-900 mb-2">Engineered for Efficiency</h2>
+        <p class="text-muted lead">Professional tools to streamline your entire recruitment pipeline.</p>
     </div>
-    <div class="col-md-3 text-center">
-      <div style="width:52px;height:52px;background:rgba(15,214,194,.12);border:1px solid rgba(15,214,194,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.4rem;color:var(--teal)">
-        <i class="bi bi-briefcase"></i>
-      </div>
-      <h3 style="font-size:.95rem;font-weight:700;margin-bottom:.4rem">2. Post a Job</h3>
-      <p style="color:var(--muted);font-size:.83rem">Recruiters add job descriptions and required skills.</p>
+    <div class="row g-4">
+        <div class="col-md-4">
+            <div class="card-ats p-4 h-100 border-hover-teal transition-all glass-card">
+                <div class="icon-box mb-3 d-inline-flex align-items-center justify-content-center rounded-3 bg-teal-subtle text-teal" style="width: 50px; height: 50px;">
+                    <i class="bi bi-cpu fs-4"></i>
+                </div>
+                <h5 class="fw-bold">Semantic NLP Engine</h5>
+                <p class="text-muted small lh-lg">Beyond simple keyword matching. Our AI understands context, seniority levels, and domain-specific terminology overlap.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card-ats p-4 h-100 border-hover-teal transition-all glass-card">
+                <div class="icon-box mb-3 d-inline-flex align-items-center justify-content-center rounded-3 bg-amber-subtle text-amber" style="width: 50px; height: 50px;">
+                    <i class="bi bi-shield-lock fs-4"></i>
+                </div>
+                <h5 class="fw-bold">Privacy by Design</h5>
+                <p class="text-muted small lh-lg">No external APIs or data leaks. All resume processing stays 100% local on your own database and infrastructure.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card-ats p-4 h-100 border-hover-teal transition-all glass-card">
+                <div class="icon-box mb-3 d-inline-flex align-items-center justify-content-center rounded-3 bg-indigo-subtle text-indigo" style="width: 50px; height: 50px;">
+                    <i class="bi bi-file-earmark-pdf fs-4"></i>
+                </div>
+                <h5 class="fw-bold">Executive PDF Reports</h5>
+                <p class="text-muted small lh-lg">Instantly generate professional AI-graded candidate summaries in PDF format, ready for hiring committee reviews.</p>
+            </div>
+        </div>
     </div>
-    <div class="col-md-3 text-center">
-      <div style="width:52px;height:52px;background:rgba(15,214,194,.12);border:1px solid rgba(15,214,194,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.4rem;color:var(--teal)">
-        <i class="bi bi-file-earmark-arrow-up"></i>
-      </div>
-      <h3 style="font-size:.95rem;font-weight:700;margin-bottom:.4rem">3. Apply</h3>
-      <p style="color:var(--muted);font-size:.83rem">Candidates upload PDF/DOCX resumes and get instant NLP scores.</p>
+</section>
+
+<!-- CTA Section -->
+<section class="py-5 mt-5">
+    <div class="card-ats p-4 p-md-5 text-center bg-gradient-ats border-0 shadow-lg position-relative overflow-hidden">
+        <div class="position-absolute top-0 start-0 w-100 h-100 opacity-10 bg-grid"></div>
+        <div class="py-4 position-relative">
+            <h2 class="display-5 fw-900 mb-4" style="font-size: clamp(2rem, 5vw, 3.5rem);">Start Smarter Hiring Today.</h2>
+            <p class="text-muted lead mb-5 mx-auto" style="max-width: 600px;">Join HR teams scaling their recruitment with zero API costs and total data control.</p>
+            <div class="d-flex flex-wrap gap-3 justify-content-center">
+                <a href="{% url 'register' %}" class="btn btn-ats-primary btn-lg px-5">Join Now</a>
+                <a href="{% url 'login' %}" class="btn btn-ats-outline btn-lg px-5">Sign In</a>
+            </div>
+        </div>
     </div>
-    <div class="col-md-3 text-center">
-      <div style="width:52px;height:52px;background:rgba(15,214,194,.12);border:1px solid rgba(15,214,194,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1rem;font-size:1.4rem;color:var(--teal)">
-        <i class="bi bi-bar-chart-line"></i>
-      </div>
-      <h3 style="font-size:.95rem;font-weight:700;margin-bottom:.4rem">4. Review</h3>
-      <p style="color:var(--muted);font-size:.83rem">Recruiters see a ranked table with matched/missing skills.</p>
-    </div>
-  </div>
-</div>
+</section>
+
+<style>
+    .fw-900 { font-weight: 900; }
+    .text-teal { color: var(--teal); }
+    .shadow-2xl { box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.6); }
+    .transition-all { transition: var(--transition); }
+    
+    .bg-teal-subtle { background: rgba(var(--teal-rgb), 0.1); }
+    .bg-amber-subtle { background: rgba(245, 166, 35, 0.1); }
+    .bg-indigo-subtle { background: rgba(99, 102, 241, 0.1); }
+    
+    .text-gradient {
+        background: linear-gradient(135deg, var(--teal), var(--indigo));
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .glass-card {
+        background: var(--glass) !important;
+        backdrop-filter: blur(12px) !important;
+        border: 1px solid rgba(255,255,255,0.05) !important;
+    }
+
+    .bg-glass-surface {
+        background: var(--glass) !important;
+        backdrop-filter: blur(20px) !important;
+        border: 1px solid rgba(255,255,255,0.05) !important;
+    }
+
+    .hero-card-container {
+        perspective: 1500px;
+        padding: 20px;
+    }
+
+    .hero-card-container .card-ats {
+        transform: rotateY(-12deg) rotateX(10deg);
+        transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
+
+    .hero-card-container:hover .card-ats {
+        transform: rotateY(0deg) rotateX(0deg);
+    }
+
+    @media (max-width: 991.98px) {
+        .hero-card-container .card-ats {
+            transform: none !important;
+        }
+    }
+
+    .bg-gradient-ats {
+        background: radial-gradient(circle at top left, rgba(var(--teal-rgb), 0.1), transparent),
+                    var(--bg-panel);
+    }
+
+    .shadow-glow {
+        box-shadow: 0 0 20px rgba(var(--teal-rgb), 0.3);
+    }
+
+    .pulse-dot {
+        width: 8px; height: 8px;
+        background: var(--teal);
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+    }
+
+    .bg-grid {
+        background-image: radial-gradient(var(--teal) 1px, transparent 1px);
+        background-size: 24px 24px;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(var(--teal-rgb), 0.7); }
+        70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(var(--teal-rgb), 0); }
+        100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(var(--teal-rgb), 0); }
+    }
+
+    @keyframes float {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-15px); }
+    }
+
+    .floating-badge {
+        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+        backdrop-filter: blur(8px);
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .border-md-start {
+        border-left: 1px solid var(--border);
+    }
+
+    @media (max-width: 767.98px) {
+        .border-md-start {
+            border-left: none;
+        }
+    }
+</style>
 
 {% endblock %}

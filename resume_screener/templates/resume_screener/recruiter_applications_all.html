@@ -1,0 +1,132 @@
+{% extends 'resume_screener/base.html' %}
+{% block title %}All Applications{% endblock %}
+{% block page_title %}Candidate Pipeline{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Header Area -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+        <h1 class="h3 fw-900 m-0 text-gradient">Recruitment Pipeline</h1>
+        <div class="d-flex gap-2">
+            <a href="{% url 'job_create' %}" class="btn btn-ats-primary btn-sm">
+                <i class="bi bi-plus-lg me-1"></i> Post New Job
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters Strip -->
+    <div class="card-ats p-3 mb-4 bg-surface-subtle" style="border-left: 4px solid var(--teal)">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-muted">Minimum AI Score</label>
+                <select name="min_score" class="form-select border-0 shadow-sm">
+                    <option value="">All Candidates</option>
+                    <option value="90" {% if min_score == "90" %}selected{% endif %}>≥ 90% (Elite)</option>
+                    <option value="70" {% if min_score == "70" %}selected{% endif %}>≥ 70% (Shortlisted)</option>
+                    <option value="50" {% if min_score == "50" %}selected{% endif %}>≥ 50% (Review Required)</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small fw-bold text-muted">Pipeline Stage</label>
+                <select name="status" class="form-select border-0 shadow-sm">
+                    <option value="">All Stages</option>
+                    {% for val, label in status_choices %}
+                    <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4">
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-ats-primary flex-grow-1">
+                        <i class="bi bi-funnel me-2"></i> Filter
+                    </button>
+                    <a href="{% url 'recruiter_applications_all' %}" class="btn btn-ats-outline">
+                        Reset
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Applications Table -->
+    <div class="card-ats border-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle m-0">
+                <thead class="bg-light-subtle">
+                    <tr>
+                        <th class="ps-4 py-3 border-0">Candidate</th>
+                        <th class="py-3 border-0">Job Position</th>
+                        <th class="py-3 border-0">AI Match</th>
+                        <th class="py-3 border-0 text-center">Status</th>
+                        <th class="pe-4 py-3 border-0 text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody style="border-top: 0">
+                    {% for app in applications %}
+                    <tr class="transition-base">
+                        <td class="ps-4 py-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="rounded-circle bg-teal-subtle d-flex align-items-center justify-content-center text-teal fw-bold" style="width: 42px; height: 42px; border: 2px solid var(--teal)">
+                                    {{ app.candidate.username|slice:":1"|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold">{{ app.candidate.get_full_name|default:app.candidate.username }}</div>
+                                    <div class="small text-muted" style="font-size: 0.7rem;">Applied {{ app.applied_at|timesince }} ago</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="fw-bold small">{{ app.job_posting.title }}</div>
+                            <div class="text-muted" style="font-size: 0.7rem;">{{ app.job_posting.company|default:app.job_posting.location }}</div>
+                        </td>
+                        <td>
+                            <div style="min-width: 120px;">
+                                <div class="d-flex justify-content-between mb-1" style="font-size: 0.75rem;">
+                                    <span class="fw-bold text-teal">{{ app.match_score|floatformat:0 }}%</span>
+                                </div>
+                                <div class="progress" style="height: 6px; background: rgba(var(--teal-rgb), 0.1)">
+                                    <div class="progress-bar bg-teal" style="width: {{ app.match_score }}%"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge-pipeline {{ app.status }} px-3" style="font-size: 0.65rem;">{{ app.get_status_display }}</span>
+                        </td>
+                        <td class="text-end pe-4">
+                            <a href="{% url 'application_detail' app.pk %}" class="btn btn-sm btn-ats-outline p-2 px-3" style="font-size: 0.75rem;">
+                                View Full Analysis
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="py-5 text-center">
+                            <div class="p-5">
+                                <i class="bi bi-person-x display-4 text-muted d-block mb-3 opacity-25"></i>
+                                <h5 class="text-muted fw-bold">No active candidates found</h5>
+                                <p class="text-muted small">Try adjusting your filters or post a new job to attract talent.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .text-gradient {
+        background: linear-gradient(45deg, var(--text-main), var(--teal));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+    .transition-base {
+        transition: var(--transition);
+    }
+    .transition-base:hover {
+        background-color: var(--nav-hover) !important;
+        transform: scale(1.002);
+    }
+</style>
+{% endblock %}

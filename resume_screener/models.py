@@ -125,11 +125,12 @@ class Application(models.Model):
     """
 
     class Status(models.TextChoices):
-        PENDING     = 'pending',     'Pending'
-        ANALYSED    = 'analysed',    'Analysed'
+        APPLIED     = 'applied',     'Applied'
+        SCREENING   = 'screening',   'Screening'
         SHORTLISTED = 'shortlisted', 'Shortlisted'
-        REJECTED    = 'rejected',    'Rejected'
+        INTERVIEW   = 'interview',   'Interview'
         HIRED       = 'hired',       'Hired'
+        REJECTED    = 'rejected',    'Rejected'
 
     # ── Relationships ─────────────────────────────────────────────────────
     candidate   = models.ForeignKey(
@@ -164,7 +165,7 @@ class Application(models.Model):
     cover_letter    = models.TextField(blank=True, default='')
 
     # ── Status & timestamps ───────────────────────────────────────────────
-    status          = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING)
+    status          = models.CharField(max_length=20, choices=Status.choices, default=Status.APPLIED)
     recruiter_notes = models.TextField(blank=True, default='')
     applied_at      = models.DateTimeField(auto_now_add=True)
     analysed_at     = models.DateTimeField(null=True, blank=True)
@@ -211,5 +212,5 @@ class Application(models.Model):
         return self.match_score is not None and self.match_score >= 70
 
     def mark_analysed(self):
-        self.status = self.Status.ANALYSED
+        self.status = self.Status.SCREENING
         self.analysed_at = timezone.now()

@@ -16,6 +16,9 @@ from django.views.decorators.http import require_POST
 
 from .forms import ApplicationForm, JobPostingForm, LoginForm, RecruiterNotesForm, RegisterForm
 from .models import Application, CustomUser, JobPosting
+from django.template.loader import get_template
+from xhtml2pdf import pisa
+from io import BytesIO
 from . import nlp_engine
 
 logger = logging.getLogger(__name__)
@@ -227,6 +230,39 @@ def application_detail(request, app_id):
     return render(request, 'resume_screener/application_detail.html', {
         'app':        app,
         'notes_form': notes_form,
+        'status_choices': Application.Status.choices,
+    })
+
+
+@login_required
+@recruiter_required
+def recruiter_applications_all(request):
+    """View all applications across all jobs for a recruiter."""
+    # Filter parameters
+    min_score = request.GET.get('min_score', '')
+    status_filter = request.GET.get('status', '')
+    
+    apps = (
+        Application.objects
+        .filter(job_posting__recruiter=request.user)
+        .select_related('candidate', 'job_posting')
+        .order_by('-applied_at')
+    )
+    
+    if min_score:
+        try:
+            apps = apps.filter(match_score__gte=float(min_score))
+        except ValueError:
+            pass
+            
+    if status_filter:
+        apps = apps.filter(status=status_filter)
+        
+    return render(request, 'resume_screener/recruiter_applications_all.html', {
+        'applications': apps,
+        'min_score': min_score,
+        'status_filter': status_filter,
+        'status_choices': Application.Status.choices,
     })
 
 
@@ -354,3 +390,49 @@ def handler403(request, exception=None):
 
 def handler404(request, exception=None):
     return render(request, 'resume_screener/404.html', status=404)
+
+
+@login_required
+@recruiter_required
+def download_analysis_pdf(request, app_id):
+    """Generate a professional PDF report of the candidate analysis."""
+    app = get_object_or_404(
+        Application.objects.select_related('candidate', 'job_posting'),
+        pk=app_id,
+        job_posting__recruiter=request.user,
+    )
+    
+    template_path = 'resume_screener/analysis_report.html'
+    context = {'app': app, 'today': timezone.now()}
+    
+    # Create a Django response object, and specify content_type as pdf
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'attachment; filename="analysis_{app.candidate.username}.pdf"'
+    
+    # find the template and render it.
+    template = get_template(template_path)
+    html = template.render(context)
+
+    # create a pdf
+    pisa_status = pisa.CreatePDF(
+       html, dest=response)
+       
+    # if error then show some funny view
+    if pisa_status.err:
+       return HttpResponse('We had some errors <pre>' + html + '</pre>')
+    return response
+
+
+@login_required
+@recruiter_required
+def update_application_status(request, app_id):
+    """Update the pipeline status of an application."""
+    if request.method == 'POST':
+        app = get_object_or_404(Application, pk=app_id, job_posting__recruiter=request.user)
+        new_status = request.POST.get('status')
+        if new_status in Application.Status.values:
+            app.status = new_status
+            app.save()
+            messages.success(request, f'Status updated to {app.get_status_display()}')
+        return redirect('application_detail', app_id=app.pk)
+    return redirect('dashboard')

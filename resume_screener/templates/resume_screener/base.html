@@ -1,509 +1,426 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-bs-theme="dark">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>{% block title %}TalentAI{% endblock %} · AI Resume Screener</title>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+    <title>{% block title %}TalentAI{% endblock %} · AI ATS</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+    
+    <!-- Bootstrap & Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
 
-  <style>
-    :root {
-      --ink:       #0a0e1a;
-      --ink-soft:  #1c2333;
-      --surface:   #141927;
-      --panel:     #1e2740;
-      --border:    rgba(255,255,255,.08);
-      --teal:      #0fd6c2;
-      --teal-dim:  #0ab8a6;
-      --amber:     #f5a623;
-      --rose:      #f5476a;
-      --text:      #e2e8f4;
-      --muted:     #7a8aaa;
-      --font:      'Outfit', sans-serif;
-      --mono:      'JetBrains Mono', monospace;
-      --radius:    12px;
-      --radius-lg: 20px;
-      --shadow:    0 8px 32px rgba(0,0,0,.4);
-    }
+    <style>
+        :root {
+            --teal:      #0fd6c2;
+            --teal-rgb:  15, 214, 194;
+            --teal-dim:  #0ab8a6;
+            --amber:     #f5a623;
+            --rose:      #f5476a;
+            --indigo:    #6366f1;
+            --font:      'Outfit', sans-serif;
+            --mono:      'JetBrains Mono', monospace;
+            --radius:    12px;
+            --radius-lg: 20px;
+            --shadow:    0 10px 40px rgba(0,0,0,.15);
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        [data-bs-theme="dark"] {
+            --bg-body:    #0a0e1a;
+            --bg-surface: #141927;
+            --bg-panel:   #1e2740;
+            --bg-sidebar: #0f1423;
+            --border:     rgba(255,255,255,.08);
+            --text-main:  #e2e8f4;
+            --text-muted: #7a8aaa;
+            --nav-hover:  rgba(15, 214, 194, 0.1);
+            --glass:      rgba(30, 39, 64, 0.7);
+        }
 
-    html { scroll-behavior: smooth; }
+        [data-bs-theme="light"] {
+            --bg-body:    #f8f9ff;
+            --bg-surface: #ffffff;
+            --bg-panel:   #ffffff;
+            --bg-sidebar: #fdfdff;
+            --border:     rgba(0,0,0,.06);
+            --text-main:  #1e293b;
+            --text-muted: #64748b;
+            --nav-hover:  rgba(15, 214, 194, 0.08);
+            --shadow:     0 5px 20px rgba(0,0,0,.05);
+            --glass:      rgba(255, 255, 255, 0.7);
+        }
 
-    body {
-      font-family: var(--font);
-      background: var(--ink);
-      color: var(--text);
-      min-height: 100vh;
-      line-height: 1.6;
-    }
+        body {
+            font-family: var(--font);
+            background-color: var(--bg-body);
+            color: var(--text-main);
+            min-height: 100vh;
+            line-height: 1.6;
+            transition: var(--transition);
+            display: flex;
+            overflow-x: hidden;
+            width: 100%;
+        }
 
-    /* ── Scrollbar ─────────────────────────────────────────────── */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: var(--ink); }
-    ::-webkit-scrollbar-thumb { background: var(--panel); border-radius: 3px; }
+        /* ── Sidebar ────────────────────────────────────────────────── */
+        .sidebar {
+            width: 280px;
+            height: 100vh;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: var(--bg-sidebar);
+            border-right: 1px solid var(--border);
+            z-index: 1100;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+        }
 
-    /* ── Navbar ────────────────────────────────────────────────── */
-    .topnav {
-      background: var(--ink-soft);
-      border-bottom: 1px solid var(--border);
-      padding: .9rem 0;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      backdrop-filter: blur(12px);
-    }
+        @media (max-width: 991.98px) {
+            .sidebar { transform: translateX(-100%); }
+            .sidebar.active { transform: translateX(0); }
+        }
 
-    .brand {
-      font-weight: 800;
-      font-size: 1.25rem;
-      color: var(--teal) !important;
-      text-decoration: none;
-      letter-spacing: -.5px;
-      display: flex;
-      align-items: center;
-      gap: .45rem;
-    }
+        .sidebar-header {
+            height: 80px;
+            padding: 0 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
 
-    .brand-dot {
-      width: 10px; height: 10px;
-      background: var(--teal);
-      border-radius: 50%;
-      display: inline-block;
-      animation: pulse 2s ease-in-out infinite;
-    }
+        .brand {
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: var(--teal) !important;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: -0.5px;
+        }
 
-    @keyframes pulse {
-      0%,100% { opacity: 1; transform: scale(1); }
-      50%      { opacity: .5; transform: scale(.8); }
-    }
+        .brand-dot {
+            width: 10px; height: 10px;
+            background: var(--teal);
+            border-radius: 50%;
+            box-shadow: 0 0 15px rgba(var(--teal-rgb), 0.6);
+        }
 
-    .nav-pill {
-      color: var(--muted) !important;
-      font-size: .875rem;
-      font-weight: 500;
-      padding: .35rem .85rem;
-      border-radius: 20px;
-      transition: all .2s;
-      text-decoration: none;
-      border: 1px solid transparent;
-    }
-    .nav-pill:hover, .nav-pill.active {
-      color: var(--teal) !important;
-      border-color: var(--teal);
-      background: rgba(15,214,194,.08);
-    }
+        .sidebar-nav {
+            flex: 1;
+            padding: 1rem 0.75rem;
+            overflow-y: auto;
+        }
 
-    .badge-role {
-      font-family: var(--mono);
-      font-size: .65rem;
-      padding: 3px 9px;
-      border-radius: 20px;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      font-weight: 500;
-    }
-    .badge-recruiter { background: rgba(245,166,35,.15); color: var(--amber); }
-    .badge-candidate { background: rgba(15,214,194,.15);  color: var(--teal); }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.85rem 1.25rem;
+            color: var(--text-muted);
+            text-decoration: none !important;
+            border-radius: var(--radius);
+            font-weight: 600;
+            margin-bottom: 4px;
+            transition: var(--transition);
+        }
 
-    /* ── Main content area ─────────────────────────────────────── */
-    .main-wrap { padding: 2.5rem 0 4rem; }
+        .nav-link:hover, .nav-link.active {
+            color: var(--teal);
+            background: var(--nav-hover);
+        }
 
-    /* ── Cards ─────────────────────────────────────────────────── */
-    .card-dark {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow);
-    }
+        .nav-link.active::after {
+            content: "";
+            width: 4px; height: 20px;
+            background: var(--teal);
+            border-radius: 2px;
+            margin-left: auto;
+        }
 
-    .card-dark-header {
-      padding: 1.25rem 1.5rem;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      flex-wrap: wrap;
-      gap: .75rem;
-    }
+        .sidebar-footer {
+            padding: 1.25rem;
+            background: rgba(0,0,0,0.05);
+            border-top: 1px solid var(--border);
+        }
 
-    .card-dark-header h2 {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--text);
-      margin: 0;
-    }
+        /* ── Content Area ───────────────────────────────────────────── */
+        .content-area {
+            flex: 1;
+            margin-left: 280px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: margin-left 0.4s;
+        }
 
-    .card-dark-body { padding: 1.5rem; }
+        .no-sidebar .content-area { margin-left: 0; }
 
-    /* ── Stats row ─────────────────────────────────────────────── */
-    .stat-card {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: 1.4rem;
-      position: relative;
-      overflow: hidden;
-      transition: transform .2s, border-color .2s;
-    }
-    .stat-card:hover { transform: translateY(-2px); border-color: var(--teal); }
-    .stat-card::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; right: 0;
-      height: 3px;
-      background: linear-gradient(90deg, var(--teal), transparent);
-    }
+        @media (max-width: 991.98px) {
+            .content-area { margin-left: 0; }
+        }
 
-    .stat-num {
-      font-size: 2.2rem;
-      font-weight: 800;
-      color: var(--teal);
-      line-height: 1;
-      font-family: var(--mono);
-    }
+        .top-navbar {
+            height: 70px;
+            padding: 0 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-body);
+            border-bottom: 1px solid var(--border);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
 
-    .stat-label {
-      color: var(--muted);
-      font-size: .8rem;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      margin-top: .3rem;
-    }
+        .main-wrap {
+            padding: 2rem;
+            flex: 1;
+            max-width: 1400px;
+            width: 100%;
+            margin: 0 auto;
+        }
 
-    .stat-icon {
-      position: absolute;
-      top: 1.2rem; right: 1.2rem;
-      font-size: 1.8rem;
-      opacity: .12;
-      color: var(--teal);
-    }
+        /* ── Theme Toggle ───────────────────────────────────────────── */
+        .theme-toggle {
+            width: 40px; height: 40px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 1px solid var(--border);
+            background: var(--bg-surface);
+            color: var(--text-main);
+            transition: var(--transition);
+        }
 
-    /* ── Buttons ────────────────────────────────────────────────── */
-    .btn-teal {
-      background: var(--teal);
-      color: var(--ink);
-      font-weight: 700;
-      border: none;
-      border-radius: 10px;
-      padding: .55rem 1.4rem;
-      font-size: .9rem;
-      transition: all .2s;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: .4rem;
-    }
-    .btn-teal:hover {
-      background: var(--teal-dim);
-      color: var(--ink);
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(15,214,194,.3);
-    }
+        .theme-toggle:hover {
+            border-color: var(--teal);
+            color: var(--teal);
+            transform: rotate(15deg);
+        }
 
-    .btn-ghost {
-      background: transparent;
-      color: var(--muted);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: .5rem 1.2rem;
-      font-size: .875rem;
-      font-weight: 500;
-      transition: all .2s;
-      text-decoration: none;
-      display: inline-flex;
-      align-items: center;
-      gap: .4rem;
-    }
-    .btn-ghost:hover {
-      color: var(--teal);
-      border-color: var(--teal);
-      background: rgba(15,214,194,.06);
-    }
+        /* ── Interactive Cards ──────────────────────────────────────── */
+        .card-ats {
+            background: var(--bg-panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow);
+            transition: var(--transition);
+            overflow: hidden;
+        }
 
-    /* ── Forms ──────────────────────────────────────────────────── */
-    .form-control, .form-select {
-      background: var(--ink-soft) !important;
-      border: 1px solid var(--border) !important;
-      color: var(--text) !important;
-      border-radius: 10px !important;
-      padding: .6rem .9rem !important;
-      font-family: var(--font);
-      transition: border-color .2s, box-shadow .2s;
-    }
-    .form-control:focus, .form-select:focus {
-      border-color: var(--teal) !important;
-      box-shadow: 0 0 0 3px rgba(15,214,194,.15) !important;
-      outline: none;
-    }
-    .form-control::placeholder { color: var(--muted) !important; }
-    .form-label {
-      color: var(--text);
-      font-weight: 600;
-      font-size: .875rem;
-      margin-bottom: .4rem;
-    }
-    .form-text { color: var(--muted); font-size: .78rem; }
+        .card-ats:hover {
+            transform: translateY(-5px);
+            border-color: rgba(var(--teal-rgb), 0.3);
+        }
 
-    /* ── Score badge ────────────────────────────────────────────── */
-    .score-ring {
-      width: 64px; height: 64px;
-      border-radius: 50%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      font-family: var(--mono);
-      font-weight: 700;
-      font-size: 1rem;
-      border: 3px solid;
-      flex-shrink: 0;
-    }
-    .score-high   { border-color: var(--teal);  color: var(--teal);  background: rgba(15,214,194,.08); }
-    .score-mid    { border-color: var(--amber); color: var(--amber); background: rgba(245,166,35,.08); }
-    .score-low    { border-color: var(--rose);  color: var(--rose);  background: rgba(245,71,106,.08); }
-    .score-pending{ border-color: var(--muted); color: var(--muted); background: transparent; }
+        .btn-ats-primary {
+            background: var(--teal);
+            color: #000 !important;
+            font-weight: 700;
+            border: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: var(--radius);
+            transition: var(--transition);
+        }
 
-    /* ── Skill pills ────────────────────────────────────────────── */
-    .pill {
-      display: inline-block;
-      padding: 2px 10px;
-      border-radius: 20px;
-      font-size: .72rem;
-      font-weight: 600;
-      font-family: var(--mono);
-      white-space: nowrap;
-    }
-    .pill-teal    { background: rgba(15,214,194,.12); color: var(--teal); border: 1px solid rgba(15,214,194,.25); }
-    .pill-amber   { background: rgba(245,166,35,.12); color: var(--amber);border: 1px solid rgba(245,166,35,.25); }
-    .pill-rose    { background: rgba(245,71,106,.12); color: var(--rose); border: 1px solid rgba(245,71,106,.25); }
-    .pill-muted   { background: rgba(122,138,170,.1); color: var(--muted);border: 1px solid var(--border); }
+        .btn-ats-outline {
+            background: transparent;
+            color: var(--text-main);
+            border: 1px solid var(--border);
+            padding: 0.7rem 1.4rem;
+            border-radius: var(--radius);
+            font-weight: 600;
+            transition: var(--transition);
+        }
 
-    /* ── Table ──────────────────────────────────────────────────── */
-    .dark-table { width: 100%; border-collapse: separate; border-spacing: 0; }
-    .dark-table thead th {
-      color: var(--muted);
-      font-size: .72rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: .07em;
-      padding: .85rem 1rem;
-      border-bottom: 1px solid var(--border);
-      white-space: nowrap;
-    }
-    .dark-table tbody td {
-      padding: 1rem;
-      border-bottom: 1px solid var(--border);
-      vertical-align: middle;
-      color: var(--text);
-    }
-    .dark-table tbody tr:last-child td { border-bottom: none; }
-    .dark-table tbody tr {
-      transition: background .15s;
-    }
-    .dark-table tbody tr:hover { background: rgba(255,255,255,.02); }
+        .btn-ats-outline:hover {
+            color: var(--teal);
+            border-color: var(--teal);
+            background: var(--nav-hover);
+        }
 
-    /* ── Alerts ─────────────────────────────────────────────────── */
-    .alert-dark {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      color: var(--text);
-      padding: 1rem 1.25rem;
-      font-size: .9rem;
-    }
-    .alert-dark.success { border-color: rgba(15,214,194,.3); }
-    .alert-dark.warning { border-color: rgba(245,166,35,.3); }
-    .alert-dark.danger  { border-color: rgba(245,71,106,.3); }
+        /* ── Status Badges ─────────────────────────────────────────── */
+        .badge-pipeline {
+            padding: 0.4rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            display: inline-block;
+        }
 
-    /* ── Progress bar ────────────────────────────────────────────── */
-    .progress-dark {
-      background: var(--ink-soft);
-      border-radius: 4px;
-      height: 6px;
-      overflow: hidden;
-    }
-    .progress-dark-fill {
-      height: 100%;
-      border-radius: 4px;
-      transition: width .8s ease;
-    }
+        .applied    { background: rgba(99, 102, 241, 0.1); color: var(--indigo); border: 1px solid rgba(99, 102, 241, 0.2); }
+        .screening  { background: rgba(245, 166, 35, 0.1); color: var(--amber); border: 1px solid rgba(245, 166, 35, 0.2); }
+        .shortlisted{ background: rgba(15, 214, 194, 0.1); color: var(--teal); border: 1px solid rgba(15, 214, 194, 0.2); }
+        .hired      { background: var(--teal); color: #000; }
+        .rejected   { background: rgba(245, 71, 106, 0.1); color: var(--rose); border: 1px solid rgba(245, 71, 106, 0.2); }
 
-    /* ── Toast messages ─────────────────────────────────────────── */
-    .toast-area {
-      position: fixed;
-      bottom: 1.5rem;
-      right: 1.5rem;
-      z-index: 9999;
-      display: flex;
-      flex-direction: column;
-      gap: .5rem;
-    }
-    .toast-msg {
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      padding: .9rem 1.2rem;
-      font-size: .875rem;
-      font-weight: 500;
-      max-width: 340px;
-      animation: toastIn .3s ease;
-      display: flex;
-      align-items: center;
-      gap: .6rem;
-    }
-    .toast-msg.success { border-color: rgba(15,214,194,.4);  color: var(--teal); }
-    .toast-msg.warning { border-color: rgba(245,166,35,.4);  color: var(--amber); }
-    .toast-msg.error   { border-color: rgba(245,71,106,.4);  color: var(--rose); }
-    .toast-msg.info    { border-color: rgba(122,138,170,.4); color: var(--muted); }
-    @keyframes toastIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* ── Page header ────────────────────────────────────────────── */
-    .page-hdr {
-      border-bottom: 1px solid var(--border);
-      padding-bottom: 1.5rem;
-      margin-bottom: 2rem;
-    }
-    .page-hdr h1 {
-      font-size: 1.75rem;
-      font-weight: 800;
-      color: var(--text);
-    }
-    .page-hdr p { color: var(--muted); margin: 0; font-size: .925rem; }
-
-    /* ── Auth wrapper ────────────────────────────────────────────── */
-    .auth-bg {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 2rem 1rem;
-      background: var(--ink);
-      background-image:
-        radial-gradient(ellipse at 10% 20%, rgba(15,214,194,.06) 0%, transparent 50%),
-        radial-gradient(ellipse at 90% 80%, rgba(245,166,35,.04) 0%, transparent 50%);
-    }
-
-    .auth-card {
-      width: 100%;
-      max-width: 460px;
-      background: var(--panel);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      box-shadow: var(--shadow);
-      padding: 2.5rem;
-    }
-
-    /* ── Empty state ─────────────────────────────────────────────── */
-    .empty-state {
-      text-align: center;
-      padding: 4rem 2rem;
-      color: var(--muted);
-    }
-    .empty-state i { font-size: 3.5rem; opacity: .25; }
-    .empty-state h3 { color: var(--text); margin: 1rem 0 .5rem; font-size: 1.2rem; }
-
-    /* ── Responsive tweaks ────────────────────────────────────────── */
-    @media (max-width: 767px) {
-      .stat-num { font-size: 1.6rem; }
-      .main-wrap { padding: 1.5rem 0 3rem; }
-    }
-  </style>
-  {% block extra_head %}{% endblock %}
+    </style>
+    {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body class="{% if not user.is_authenticated or not user.is_recruiter %}no-sidebar{% endif %}">
 
-{% block navbar %}
-<nav class="topnav">
-  <div class="container d-flex align-items-center justify-content-between gap-3">
-    <a href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'landing' %}{% endif %}"
-       class="brand">
-      <span class="brand-dot"></span>TalentAI
-    </a>
+    {% if user.is_authenticated and user.is_recruiter %}
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <a href="{% url 'recruiter_dashboard' %}" class="brand">
+                <div class="brand-dot"></div>
+                <span>TalentAI</span>
+            </a>
+            <button class="btn d-lg-none" onclick="toggleSidebar()" style="color: var(--text-main)">
+                <i class="bi bi-x-lg"></i>
+            </button>
+        </div>
 
-    {% if user.is_authenticated %}
-    <div class="d-flex align-items-center gap-2 flex-wrap">
-      {% if user.is_recruiter %}
-        <a href="{% url 'recruiter_dashboard' %}" class="nav-pill">
-          <i class="bi bi-speedometer2 me-1"></i>Dashboard
-        </a>
-        <a href="{% url 'job_create' %}" class="nav-pill">
-          <i class="bi bi-plus-circle me-1"></i>Post Job
-        </a>
-      {% else %}
-        <a href="{% url 'candidate_dashboard' %}" class="nav-pill">
-          <i class="bi bi-search me-1"></i>Browse Jobs
-        </a>
-        <a href="{% url 'my_applications' %}" class="nav-pill">
-          <i class="bi bi-file-text me-1"></i>My Applications
-        </a>
-      {% endif %}
-    </div>
+        <nav class="sidebar-nav">
+            <ul class="p-0 m-0">
+                <li class="nav-item">
+                    <a href="{% url 'recruiter_dashboard' %}" class="nav-link {% if request.resolver_match.url_name == 'recruiter_dashboard' %}active{% endif %}">
+                        <i class="bi bi-speedometer2"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'job_create' %}" class="nav-link {% if request.resolver_match.url_name == 'job_create' %}active{% endif %}">
+                        <i class="bi bi-plus-circle"></i>
+                        <span>Post New Job</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'recruiter_applications_all' %}" class="nav-link {% if request.resolver_match.url_name == 'recruiter_applications_all' %}active{% endif %}">
+                        <i class="bi bi-people"></i>
+                        <span>Applications</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{% url 'recruiter_dashboard' %}" class="nav-link">
+                        <i class="bi bi-graph-up"></i>
+                        <span>Analytics</span>
+                    </a>
+                </li>
+            </ul>
+        </nav>
 
-    <div class="d-flex align-items-center gap-3">
-      <span class="badge-role {% if user.is_recruiter %}badge-recruiter{% else %}badge-candidate{% endif %}">
-        {{ user.get_role_display }}
-      </span>
-      <span class="d-none d-md-inline" style="color:var(--muted);font-size:.85rem">
-        <i class="bi bi-person-circle me-1"></i>{{ user.username }}
-      </span>
-      <form method="post" action="{% url 'logout' %}" class="m-0">
-        {% csrf_token %}
-        <button class="btn-ghost" style="padding:.35rem .9rem;font-size:.82rem">
-          <i class="bi bi-box-arrow-right"></i>
-          <span class="d-none d-sm-inline">Logout</span>
-        </button>
-      </form>
-    </div>
-    {% else %}
-    <div class="d-flex gap-2">
-      <a href="{% url 'login' %}" class="btn-ghost">Sign In</a>
-      <a href="{% url 'register' %}" class="btn-teal">Get Started</a>
-    </div>
+        <div class="sidebar-footer">
+            <div class="d-flex align-items-center gap-3">
+                <div class="rounded-circle bg-teal d-flex align-items-center justify-content-center text-dark fw-bold" style="width: 36px; height: 36px; font-size: 0.8rem">
+                    {{ user.username|slice:":1"|upper }}
+                </div>
+                <div class="flex-grow-1 overflow-hidden">
+                    <div class="fw-bold small text-truncate">{{ user.username }}</div>
+                    <div class="text-muted" style="font-size: 0.65rem">Recruiter Portal</div>
+                </div>
+                <form method="post" action="{% url 'logout' %}" class="m-0">
+                    {% csrf_token %}
+                    <button type="submit" class="btn p-0 text-danger opacity-75"><i class="bi bi-box-arrow-right fs-5"></i></button>
+                </form>
+            </div>
+        </div>
+    </aside>
     {% endif %}
-  </div>
-</nav>
-{% endblock %}
 
-<!-- Flash messages -->
-{% if messages %}
-<div class="toast-area" id="toastArea">
-  {% for msg in messages %}
-  <div class="toast-msg {% if msg.tags == 'success' %}success{% elif msg.tags == 'warning' %}warning{% elif msg.tags == 'error' or msg.tags == 'danger' %}error{% else %}info{% endif %}">
-    <i class="bi bi-{% if msg.tags == 'success' %}check-circle-fill{% elif msg.tags == 'warning' %}exclamation-triangle-fill{% elif msg.tags == 'error' or msg.tags == 'danger' %}x-circle-fill{% else %}info-circle-fill{% endif %}"></i>
-    {{ msg }}
-  </div>
-  {% endfor %}
-</div>
-{% endif %}
+    <div class="content-area">
+        <header class="top-navbar">
+            <div class="d-flex align-items-center gap-3">
+                {% if user.is_authenticated and user.is_recruiter %}
+                    <button class="btn d-lg-none p-0" onclick="toggleSidebar()" style="color: var(--text-main)">
+                        <i class="bi bi-list fs-2"></i>
+                    </button>
+                {% else %}
+                    <a href="{% url 'landing' %}" class="brand">
+                        <div class="brand-dot"></div>
+                        <span>TalentAI</span>
+                    </a>
+                {% endif %}
+                
+                <h6 class="m-0 d-none d-md-block fw-bold text-muted ps-2" style="border-left: 1px solid var(--border)">
+                    {% block page_title %}Recruitment Hub{% endblock %}
+                </h6>
+            </div>
 
-<main class="main-wrap">
-  {% block content %}{% endblock %}
-</main>
+            <div class="d-flex align-items-center gap-3">
+                <!-- Unauthenticated user nav -->
+                {% if not user.is_authenticated %}
+                    <a href="{% url 'login' %}" class="text-decoration-none text-main fw-600 small px-2">Login</a>
+                    <a href="{% url 'register' %}" class="btn-ats-primary btn-sm px-3">Join Local</a>
+                {% endif %}
 
-<footer style="border-top:1px solid var(--border);padding:1.5rem 0;text-align:center;">
-  <span style="color:var(--muted);font-size:.8rem">
-    TalentAI &mdash; NLP-Powered Resume Screening &middot; Built with Django + NLTK + scikit-learn
-  </span>
-</footer>
+                <!-- Candidate specific nav -->
+                {% if user.is_authenticated and not user.is_recruiter %}
+                    <a href="{% url 'candidate_dashboard' %}" class="nav-link small p-0 fw-600 me-2">Browse Jobs</a>
+                    <a href="{% url 'my_applications' %}" class="nav-link small p-0 fw-600 me-2">My Applications</a>
+                    <form method="post" action="{% url 'logout' %}" class="m-0 me-2">
+                        {% csrf_token %}
+                        <button type="submit" class="btn p-0 text-muted small fw-600">Logout</button>
+                    </form>
+                {% endif %}
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-  // Auto-dismiss toasts after 5 s
-  setTimeout(() => {
-    const area = document.getElementById('toastArea');
-    if (area) area.style.display = 'none';
-  }, 5000);
-</script>
-{% block extra_js %}{% endblock %}
+                <!-- Global Theme Toggle -->
+                <div class="theme-toggle" onclick="toggleTheme()" title="Toggle Theme">
+                    <i class="bi bi-moon-stars" id="themeIcon"></i>
+                </div>
+            </div>
+        </header>
+
+        {% if messages %}
+        <div class="px-4 pt-3">
+            {% for msg in messages %}
+            <div class="alert alert-{{ msg.tags|default:'info' }} alert-dismissible fade show rounded-sm border-0 shadow-sm small py-2" role="alert">
+                {{ msg }}
+                <button type="button" class="btn-close py-2" data-bs-dismiss="alert"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <main class="main-wrap">
+            {% block content %}{% endblock %}
+        </main>
+
+        <footer class="py-4 text-center border-top bg-light-subtle">
+            <div class="small text-muted fw-500">
+                TalentAI &copy; 2024 &middot; Engineered for Excellence
+            </div>
+        </footer>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-bs-theme', theme);
+            localStorage.setItem('theme', theme);
+            const icon = document.getElementById('themeIcon');
+            if (icon) {
+                icon.className = theme === 'dark' ? 'bi bi-moon-stars' : 'bi bi-sun';
+            }
+        }
+
+        function toggleTheme() {
+            const current = localStorage.getItem('theme') || 'dark';
+            setTheme(current === 'dark' ? 'light' : 'dark');
+        }
+
+        // Init
+        const saved = localStorage.getItem('theme') || 'dark';
+        setTheme(saved);
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if(sidebar) sidebar.classList.toggle('active');
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

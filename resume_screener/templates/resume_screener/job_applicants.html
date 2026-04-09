@@ -1,335 +1,179 @@
 {% extends 'resume_screener/base.html' %}
 {% block title %}Applicants — {{ job.title }}{% endblock %}
+{% block page_title %}Candidate Pipeline{% endblock %}
 
 {% block content %}
-<div class="container">
-
-  <!-- Header -->
-  <div class="page-hdr">
-    <nav style="font-size:.82rem;color:var(--muted);margin-bottom:.5rem">
-      <a href="{% url 'recruiter_dashboard' %}" style="color:var(--muted);text-decoration:none">Dashboard</a>
-      <span class="mx-2">›</span>
-      <span style="color:var(--text)">{{ job.title }}</span>
-    </nav>
-    <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
-      <div>
-        <h1>
-          <i class="bi bi-bar-chart-line me-2" style="color:var(--teal)"></i>
-          {{ job.title }}
-        </h1>
-        <p style="margin-top:.3rem">
-          {% if job.company %}<span>{{ job.company }}</span> &middot; {% endif %}
-          <span><i class="bi bi-geo-alt me-1"></i>{{ job.location }}</span>
-          &middot;
-          {% if job.is_active %}
-            <span style="color:var(--teal)"><i class="bi bi-circle-fill me-1" style="font-size:.45rem;vertical-align:middle"></i>Active</span>
-          {% else %}
-            <span style="color:var(--muted)">Closed</span>
-          {% endif %}
-        </p>
-      </div>
-      <a href="{% url 'job_edit' job.pk %}" class="btn-ghost">
-        <i class="bi bi-pencil"></i>Edit Job
-      </a>
-    </div>
-  </div>
-
-  <!-- Stats -->
-  <div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-      <div class="stat-card">
-        <div class="stat-num">{{ total }}</div>
-        <div class="stat-label">Total Applicants</div>
-        <i class="bi bi-people stat-icon"></i>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="stat-card">
-        <div class="stat-num" style="color:var(--teal)">{{ shortlisted }}</div>
-        <div class="stat-label">Shortlisted ≥ 70%</div>
-        <i class="bi bi-star stat-icon"></i>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="stat-card">
-        <div class="stat-num" style="color:var(--amber)">{{ avg_score }}%</div>
-        <div class="stat-label">Avg AI Score</div>
-        <i class="bi bi-graph-up stat-icon"></i>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="stat-card">
-        <div class="stat-num" style="color:var(--muted)">
-          {{ job.get_required_skills_list|length }}
+<div class="fade-in">
+    <!-- Navigation & Header -->
+    <div class="mb-5">
+        <nav class="mb-2" style="--bs-breadcrumb-divider: '›';">
+            <ol class="breadcrumb m-0 py-1">
+                <li class="breadcrumb-item"><a href="{% url 'recruiter_dashboard' %}" class="text-decoration-none text-muted small fw-600">Dashboard</a></li>
+                <li class="breadcrumb-item active text-main small fw-bold" aria-current="page">{{ job.title }}</li>
+            </ol>
+        </nav>
+        <div class="d-flex justify-content-between align-items-end flex-wrap gap-3">
+            <div>
+                <h1 class="display-6 fw-900 m-0">{{ job.title }}</h1>
+                <p class="text-muted m-0"><i class="bi bi-geo-alt me-1"></i> {{ job.location }} &middot; <span class="text-teal fw-bold">Active Search</span></p>
+            </div>
+            <a href="{% url 'job_edit' job.pk %}" class="btn btn-ats-outline btn-sm shadow-sm">
+                <i class="bi bi-pencil-square me-2"></i>Edit Job Details
+            </a>
         </div>
-        <div class="stat-label">Skills Required</div>
-        <i class="bi bi-lightning-charge stat-icon"></i>
-      </div>
     </div>
-  </div>
 
-  <!-- Required skills reference strip -->
-  <div class="card-dark mb-4" style="border-radius:12px">
-    <div class="card-dark-body" style="padding:1rem 1.5rem">
-      <span style="font-size:.72rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-right:.75rem">
-        <i class="bi bi-lightning-charge-fill me-1" style="color:var(--teal)"></i>Required Skills
-      </span>
-      {% for skill in job.get_required_skills_list %}
-        <span class="pill pill-teal me-1">{{ skill }}</span>
-      {% empty %}
-        <span style="color:var(--muted);font-size:.85rem">None listed</span>
-      {% endfor %}
-    </div>
-  </div>
-
-  <!-- Filters -->
-  <div class="card-dark mb-4" style="border-radius:12px">
-    <div class="card-dark-body" style="padding:1rem 1.5rem">
-      <form method="get" style="display:flex;gap:.75rem;align-items:flex-end;flex-wrap:wrap">
-        <div>
-          <label class="form-label" style="font-size:.78rem">Min Score</label>
-          <select name="min_score" class="form-select" style="width:auto;min-width:130px">
-            <option value="">All candidates</option>
-            <option value="90" {% if min_score == "90" %}selected{% endif %}>≥ 90% Excellent</option>
-            <option value="70" {% if min_score == "70" %}selected{% endif %}>≥ 70% Shortlisted</option>
-            <option value="50" {% if min_score == "50" %}selected{% endif %}>≥ 50% Fair</option>
-          </select>
+    <!-- Analytics Snapshot -->
+    <div class="row g-4 mb-5">
+        <div class="col-6 col-md-3">
+            <div class="card-ats p-4 text-center">
+                <div class="text-muted small fw-800 text-uppercase mb-1">Total Pool</div>
+                <div class="h3 fw-900 m-0 text-main">{{ total }}</div>
+            </div>
         </div>
-        <div>
-          <label class="form-label" style="font-size:.78rem">Status</label>
-          <select name="status" class="form-select" style="width:auto;min-width:140px">
-            <option value="">All statuses</option>
-            {% for val, label in status_choices %}
-              <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
-            {% endfor %}
-          </select>
+        <div class="col-6 col-md-3">
+            <div class="card-ats p-4 text-center border-bottom border-teal" style="border-bottom-width: 4px !important;">
+                <div class="text-muted small fw-800 text-uppercase mb-1 text-teal">Shortlisted</div>
+                <div class="h3 fw-900 m-0 text-teal">{{ shortlisted }}</div>
+            </div>
         </div>
-        <div style="display:flex;gap:.5rem;padding-bottom:1px">
-          <button type="submit" class="btn-teal" style="padding:.5rem 1.2rem">
-            <i class="bi bi-funnel"></i>Filter
-          </button>
-          <a href="{% url 'job_applicants' job.pk %}" class="btn-ghost" style="padding:.5rem 1rem">
-            Clear
-          </a>
+        <div class="col-6 col-md-3">
+            <div class="card-ats p-4 text-center">
+                <div class="text-muted small fw-800 text-uppercase mb-1 text-amber">Avg Match</div>
+                <div class="h3 fw-900 m-0 text-amber">{{ avg_score|default:0|floatformat:1 }}%</div>
+            </div>
         </div>
-      </form>
-    </div>
-  </div>
-
-  <!-- Ranked applicant table -->
-  {% if applications %}
-  <div class="card-dark">
-    <div class="card-dark-header">
-      <h2>
-        <i class="bi bi-trophy me-2" style="color:var(--teal)"></i>
-        Ranked Applicants
-        <span style="color:var(--muted);font-weight:400;font-size:.85rem;margin-left:.5rem">
-          sorted by AI match score, highest first
-        </span>
-      </h2>
-      <!-- Score legend -->
-      <div style="display:flex;gap:1rem;font-size:.75rem">
-        <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--teal);margin-right:4px"></span><span style="color:var(--muted)">≥70% Shortlisted</span></span>
-        <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--amber);margin-right:4px"></span><span style="color:var(--muted)">45–69% Fair</span></span>
-        <span><span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--rose);margin-right:4px"></span><span style="color:var(--muted)">&lt;45% Low</span></span>
-      </div>
+        <div class="col-6 col-md-3">
+            <div class="card-ats p-4 text-center">
+                <div class="text-muted small fw-800 text-uppercase mb-1">Skills Req</div>
+                <div class="h3 fw-900 m-0 text-indigo">{{ job.get_required_skills_list|length }}</div>
+            </div>
+        </div>
     </div>
 
-    <div style="overflow-x:auto">
-      <table class="dark-table">
-        <thead>
-          <tr>
-            <th style="width:40px">#</th>
-            <th>Candidate</th>
-            <th class="text-center" style="width:90px">AI Score</th>
-            <th class="text-center" style="width:90px">Skill Match</th>
-            <th class="text-center" style="width:90px">Semantic</th>
-            <th>Matched Skills</th>
-            <th>Missing Skills</th>
-            <th class="text-center">Status</th>
-            <th class="text-center">Applied</th>
-            <th class="text-center">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for app in applications %}
-          <tr>
-
-            <!-- Rank -->
-            <td>
-              <span style="font-family:var(--mono);font-size:.8rem;color:var(--muted);font-weight:600">
-                {% if app.is_shortlisted and forloop.counter <= 3 %}
-                  <i class="bi bi-trophy-fill" style="color:{% if forloop.counter == 1 %}#ffd700{% elif forloop.counter == 2 %}#c0c0c0{% else %}#cd7f32{% endif %}"></i>
-                {% else %}
-                  {{ forloop.counter }}
-                {% endif %}
-              </span>
-            </td>
-
-            <!-- Candidate info -->
-            <td>
-              <div style="font-weight:700;color:#fff">
-                {{ app.candidate.get_full_name|default:app.candidate.username }}
-              </div>
-              <div style="font-size:.75rem;color:var(--muted)">
-                @{{ app.candidate.username }}
-                {% if app.candidate.email %}&middot; {{ app.candidate.email }}{% endif %}
-              </div>
-            </td>
-
-            <!-- Overall AI score ring -->
-            <td class="text-center">
-              {% if app.match_score is not None %}
-                <div class="score-ring mx-auto
-                  {% if app.match_score >= 70 %}score-high
-                  {% elif app.match_score >= 45 %}score-mid
-                  {% else %}score-low{% endif %}"
-                     style="width:56px;height:56px;font-size:.9rem">
-                  {{ app.match_score|floatformat:0 }}%
-                </div>
-                <!-- Progress bar under score -->
-                <div class="progress-dark mt-1" style="height:4px">
-                  <div class="progress-dark-fill"
-                       style="width:{{ app.match_score|floatformat:0 }}%;
-                              background:{% if app.match_score >= 70 %}var(--teal){% elif app.match_score >= 45 %}var(--amber){% else %}var(--rose){% endif %}">
-                  </div>
-                </div>
-              {% else %}
-                <div class="score-ring score-pending mx-auto" style="width:56px;height:56px;font-size:.7rem">
-                  <i class="bi bi-hourglass-split"></i>
-                </div>
-              {% endif %}
-            </td>
-
-            <!-- Skill score -->
-            <td class="text-center">
-              {% if app.skill_score is not None %}
-                <span style="font-family:var(--mono);font-weight:700;font-size:.9rem;
-                  color:{% if app.skill_score >= 70 %}var(--teal){% elif app.skill_score >= 45 %}var(--amber){% else %}var(--rose){% endif %}">
-                  {{ app.skill_score|floatformat:0 }}%
-                </span>
-                <div style="font-size:.65rem;color:var(--muted);margin-top:1px">skill overlap</div>
-              {% else %}
-                <span style="color:var(--muted)">—</span>
-              {% endif %}
-            </td>
-
-            <!-- TF-IDF semantic score -->
-            <td class="text-center">
-              {% if app.tfidf_score is not None %}
-                <span style="font-family:var(--mono);font-weight:700;font-size:.9rem;
-                  color:{% if app.tfidf_score >= 70 %}var(--teal){% elif app.tfidf_score >= 45 %}var(--amber){% else %}var(--rose){% endif %}">
-                  {{ app.tfidf_score|floatformat:0 }}%
-                </span>
-                <div style="font-size:.65rem;color:var(--muted);margin-top:1px">TF-IDF</div>
-              {% else %}
-                <span style="color:var(--muted)">—</span>
-              {% endif %}
-            </td>
-
-            <!-- Matched skills -->
-            <td style="max-width:200px">
-              {% if app.matched_skills %}
-                <div style="display:flex;flex-wrap:wrap;gap:3px">
-                  {% for skill in app.matched_skills|slice:":5" %}
-                    <span class="pill pill-teal">
-                      <i class="bi bi-check me-1"></i>{{ skill }}
-                    </span>
-                  {% endfor %}
-                  {% if app.matched_skills|length > 5 %}
-                    <span class="pill pill-muted">+{{ app.matched_skills|length|add:"-5" }}</span>
-                  {% endif %}
-                </div>
-              {% else %}
-                <span style="color:var(--muted);font-size:.8rem">—</span>
-              {% endif %}
-            </td>
-
-            <!-- Missing skills -->
-            <td style="max-width:200px">
-              {% if app.missing_skills %}
-                <div style="display:flex;flex-wrap:wrap;gap:3px">
-                  {% for skill in app.missing_skills|slice:":4" %}
-                    <span class="pill pill-rose">
-                      <i class="bi bi-x me-1"></i>{{ skill }}
-                    </span>
-                  {% endfor %}
-                  {% if app.missing_skills|length > 4 %}
-                    <span class="pill pill-muted">+{{ app.missing_skills|length|add:"-4" }}</span>
-                  {% endif %}
-                </div>
-              {% elif app.match_score is not None %}
-                <span style="color:var(--teal);font-size:.8rem;font-weight:600">
-                  <i class="bi bi-check-circle me-1"></i>None missing
-                </span>
-              {% else %}
-                <span style="color:var(--muted);font-size:.8rem">—</span>
-              {% endif %}
-            </td>
-
-            <!-- Status -->
-            <td class="text-center">
-              {% if app.status == 'shortlisted' %}
-                <span class="pill pill-teal">Shortlisted</span>
-              {% elif app.status == 'hired' %}
-                <span class="pill" style="background:rgba(15,214,194,.2);color:var(--teal);border:1px solid var(--teal)">Hired</span>
-              {% elif app.status == 'rejected' %}
-                <span class="pill pill-rose">Rejected</span>
-              {% elif app.status == 'analysed' %}
-                <span class="pill pill-amber">Analysed</span>
-              {% else %}
-                <span class="pill pill-muted">Pending</span>
-              {% endif %}
-            </td>
-
-            <!-- Applied date -->
-            <td class="text-center" style="font-size:.78rem;color:var(--muted);white-space:nowrap">
-              {{ app.applied_at|date:"M d, Y" }}
-            </td>
-
-            <!-- Detail link -->
-            <td class="text-center">
-              <a href="{% url 'application_detail' app.pk %}" class="btn-ghost"
-                 style="padding:.3rem .8rem;font-size:.78rem">
-                <i class="bi bi-eye"></i>Detail
-              </a>
-            </td>
-
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+    <!-- Filter Bar -->
+    <div class="card-ats p-3 mb-4 bg-light-subtle">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <select name="min_score" class="form-select border-0 bg-surface shadow-sm fs-7">
+                    <option value="">Filter by Score</option>
+                    <option value="90" {% if min_score == "90" %}selected{% endif %}>Gold Standard (≥90%)</option>
+                    <option value="70" {% if min_score == "70" %}selected{% endif %}>Shortlisted (≥70%)</option>
+                    <option value="50" {% if min_score == "50" %}selected{% endif %}>Baseline (≥50%)</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select name="status" class="form-select border-0 bg-surface shadow-sm fs-7">
+                    <option value="">Filter by Stage</option>
+                    {% for val, label in status_choices %}
+                    <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-4 d-flex gap-2">
+                <button type="submit" class="btn btn-ats-primary btn-sm flex-grow-1 fw-bold">Apply</button>
+                <a href="{% url 'job_applicants' job.pk %}" class="btn btn-ats-outline btn-sm text-center" style="width: 80px;">Reset</a>
+            </div>
+        </form>
     </div>
 
-    <!-- Table footer -->
-    <div style="padding:.75rem 1.5rem;border-top:1px solid var(--border);
-                font-size:.78rem;color:var(--muted);display:flex;justify-content:space-between;flex-wrap:wrap;gap:.5rem">
-      <span>
-        <i class="bi bi-info-circle me-1"></i>
-        Ranked by combined score: 60% skill overlap + 40% TF-IDF semantic similarity
-      </span>
-      <span>
-        <span style="color:var(--teal);font-weight:700">{{ shortlisted }}</span>
-        candidate{{ shortlisted|pluralize }} scored ≥70%
-      </span>
+    <!-- Applicant Pipeline -->
+    <div class="card-ats border-0 mb-5">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle m-0">
+                <thead class="bg-light-subtle">
+                    <tr class="small fw-800 text-muted text-uppercase">
+                        <th class="ps-4 py-3">Candidate Info</th>
+                        <th class="py-3">AI Analysis</th>
+                        <th class="py-3">Top Skill Match</th>
+                        <th class="py-3 text-center">Pipeline Stage</th>
+                        <th class="pe-4 py-3 text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="border-0">
+                    {% for app in applications %}
+                    <tr class="transition-base border-bottom">
+                        <td class="ps-4">
+                            <div class="d-flex align-items-center gap-3 py-1">
+                                <div class="rounded-circle bg-indigo-subtle text-indigo d-flex align-items-center justify-content-center fw-bold" style="width: 44px; height: 44px; font-size: 1rem;">
+                                    {{ app.candidate.username|slice:":1"|upper }}
+                                </div>
+                                <div>
+                                    <div class="fw-bold text-main">{{ app.candidate.get_full_name|default:app.candidate.username }}</div>
+                                    <div class="smaller text-muted">{{ app.candidate.email }}</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div style="width: 140px;">
+                                <div class="d-flex justify-content-between mb-1">
+                                    <span class="fw-900 text-teal smaller">{{ app.match_score|floatformat:0 }}%</span>
+                                    <span class="smaller text-muted fw-bold">MATCH</span>
+                                </div>
+                                <div class="progress" style="height: 6px; background: rgba(var(--teal-rgb), 0.1);">
+                                    <div class="progress-bar bg-teal" style="width: {{ app.match_score }}%"></div>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex flex-wrap gap-1">
+                                {% for skill in app.matched_skills|slice:":3" %}
+                                <span class="badge bg-teal-subtle text-teal fw-bold" style="font-size: 0.6rem; padding: 3px 8px; border-radius: 4px;">{{ skill|upper }}</span>
+                                {% endfor %}
+                                {% if app.matched_skills|length > 3 %}
+                                <span class="text-muted smaller fw-bold ms-1">+{{ app.matched_skills|length|add:"-3" }}</span>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td class="text-center">
+                            <form action="{% url 'update_application_status' app.pk %}" method="post" class="m-0 d-inline-block">
+                                {% csrf_token %}
+                                <select name="status" class="form-select form-select-sm border-0 bg-light shadow-none fw-bold text-main ps-2" style="font-size: 0.7rem; cursor: pointer;" onchange="this.form.submit()">
+                                    {% for val, label in status_choices %}
+                                    <option value="{{ val }}" {% if app.status == val %}selected{% endif %}>{{ label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </form>
+                        </td>
+                        <td class="text-end pe-4">
+                            <div class="d-flex justify-content-end gap-2">
+                                <a href="{% url 'download_analysis_pdf' app.pk %}" class="btn btn-outline-info btn-sm rounded-3 border-light-subtle shadow-sm" title="PDF Report">
+                                    <i class="bi bi-file-earmark-pdf"></i>
+                                </a>
+                                <a href="{% url 'application_detail' app.pk %}" class="btn btn-ats-primary btn-sm px-3 fw-bold">
+                                    View Logic
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="5" class="py-5 text-center text-muted">
+                            <div class="py-4">
+                                <i class="bi bi-inbox display-4 mb-3 d-block opacity-25"></i>
+                                <h6 class="fw-bold">No candidates found for this position.</h6>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="p-3 bg-light-subtle text-muted text-center fw-bold" style="font-size: 0.65rem; letter-spacing: 0.1em;">
+            <i class="bi bi-robot me-1"></i> NLP HYBRID PIPELINE AUTOMATED RANKING SYSTEM
+        </div>
     </div>
-  </div>
-
-  {% else %}
-  <div class="card-dark">
-    <div class="empty-state">
-      <i class="bi bi-inbox"></i>
-      <h3>No applications yet</h3>
-      <p style="color:var(--muted)">
-        {% if min_score or status_filter %}
-          No candidates match your current filters. <a href="{% url 'job_applicants' job.pk %}" style="color:var(--teal)">Clear filters</a>
-        {% else %}
-          Candidates will appear here once they submit their resumes.
-        {% endif %}
-      </p>
-    </div>
-  </div>
-  {% endif %}
-
 </div>
+
+<style>
+    .fw-600 { font-weight: 600; }
+    .fw-800 { font-weight: 800; }
+    .fw-900 { font-weight: 900; }
+    .fs-7 { font-size: 0.85rem; }
+    .smaller { font-size: 0.7rem; }
+    .bg-indigo-subtle { background: rgba(99, 102, 241, 0.1); }
+    .bg-teal-subtle { background: rgba(var(--teal-rgb), 0.1); }
+    .transition-base { transition: var(--transition); }
+    .transition-base:hover { background-color: var(--nav-hover) !important; }
+</style>
 {% endblock %}

@@ -479,25 +479,8 @@ def generate_summary(
 
 def analyse(resume_file_path: str, job_posting) -> dict:
     """
-    Full NLP pipeline. Call this from the Django view.
-
-    Args:
-        resume_file_path : absolute path to the uploaded PDF/DOCX
-        job_posting      : JobPosting model instance
-
-    Returns a dict:
-      {
-        'extracted_text'   : str,
-        'candidate_info'   : dict,
-        'candidate_skills' : list[str],
-        'matched_skills'   : list[str],
-        'missing_skills'   : list[str],
-        'match_score'      : float,    # 0-100 combined score
-        'skill_score'      : float,    # 0-100 skill overlap
-        'tfidf_score'      : float,    # 0-100 semantic score
-        'nlp_summary'      : str,
-        'error'            : str | None,
-      }
+    Full NLP pipeline following architecture:
+    Parsing → Cleaning → Processing → Extraction → Scoring
     """
     result = {
         'extracted_text':   '',
@@ -512,67 +495,57 @@ def analyse(resume_file_path: str, job_posting) -> dict:
         'error':            None,
     }
 
-    # ── Step 1: Extract text ──────────────────────────────────────────────
+    # ── Step 1: Parsing ──────────────────────────────────────────────────
+    logger.info("Pipeline Step 1: Parsing resume at %s", resume_file_path)
     raw_text = extract_text(resume_file_path)
     if not raw_text:
-        result['error'] = (
-            'Could not extract text from the uploaded file. '
-            'Ensure the PDF is text-based (not a scanned image) or use a DOCX file.'
-        )
-        result['nlp_summary'] = result['error']
+        result['error'] = 'Could not parse resume text.'
         return result
-
     result['extracted_text'] = raw_text
 
-    # ── Step 2: Extract candidate info ────────────────────────────────────
+    # ── Step 2: Cleaning ──────────────────────────────────────────────────
+    logger.info("Pipeline Step 2: Cleaning and Preprocessing")
+    cleaned_resume = preprocess(raw_text)
+    cleaned_job    = preprocess(job_posting.description + ' ' + job_posting.required_skills)
+
+    # ── Step 3: NLP Processing (Info Extraction) ──────────────────────────
+    logger.info("Pipeline Step 3: NLP Processing (Candidate Info)")
     result['candidate_info'] = extract_candidate_info(raw_text)
 
-    # ── Step 3: Extract skills from resume ───────────────────────────────
+    # ── Step 4: Skill Extraction ──────────────────────────────────────────
+    logger.info("Pipeline Step 4: Skill Extraction")
     candidate_skills = extract_skills(raw_text)
     result['candidate_skills'] = candidate_skills
-
-    # ── Step 4: Get required skills from job posting ──────────────────────
     required_skills = job_posting.get_required_skills_list()
 
-    # ── Step 5: Skill overlap score ───────────────────────────────────────
+    # ── Step 5: Similarity Scoring ────────────────────────────────────────
+    logger.info("Pipeline Step 5: Similarity Scoring")
+    
+    # Jaccard-style Skill Overlap
     skill_score, matched, missing = skill_overlap_score(candidate_skills, required_skills)
     result['skill_score']    = skill_score
     result['matched_skills'] = matched
     result['missing_skills'] = missing
 
-    # ── Step 6: TF-IDF semantic similarity ───────────────────────────────
-    processed_resume = preprocess(raw_text)
-    processed_jd     = preprocess(job_posting.description + ' ' + job_posting.required_skills)
-
-    raw_tfidf   = tfidf_similarity(processed_resume, processed_jd)
+    # TF-IDF Cosine Similarity
+    raw_tfidf = tfidf_similarity(cleaned_resume, cleaned_job)
     tfidf_score = round(raw_tfidf * 100, 2)
     result['tfidf_score'] = tfidf_score
 
-    # ── Step 7: Combined score (weighted average) ─────────────────────────
-    # 60% skill overlap (most directly relevant)
-    # 40% TF-IDF semantic match (context and terminology)
+    # Combined Match Score
     match_score = round((skill_score * 0.60) + (tfidf_score * 0.40), 2)
-    match_score = max(0.0, min(100.0, match_score))
-    result['match_score'] = match_score
+    result['match_score'] = max(0.0, min(100.0, match_score))
 
-    # ── Step 8: Generate NLP summary ─────────────────────────────────────
+    # ── Summary Generation ──────────────────────────────────────────────
     candidate_name = result['candidate_info'].get('name', 'The candidate')
     result['nlp_summary'] = generate_summary(
-        match_score=match_score,
+        match_score=result['match_score'],
         skill_score=skill_score,
         tfidf_score_pct=tfidf_score,
         matched=matched,
         missing=missing,
         candidate_name=candidate_name,
         job_title=job_posting.title,
-    )
-
-    logger.info(
-        "NLP analysis complete | Job: '%s' | Score: %.1f%% | Skills: %d/%d",
-        job_posting.title,
-        match_score,
-        len(matched),
-        len(required_skills),
     )
 
     return result

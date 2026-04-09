@@ -1,167 +1,243 @@
 {% extends 'resume_screener/base.html' %}
 {% block title %}Recruiter Dashboard{% endblock %}
+{% block page_title %}Recruiter Analytics Overview{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="fade-in">
 
-  <!-- Page header -->
-  <div class="page-hdr d-flex justify-content-between align-items-center flex-wrap gap-3">
-    <div>
-      <h1><i class="bi bi-speedometer2 me-2" style="color:var(--teal)"></i>Recruiter Dashboard</h1>
-      <p>Manage your job postings and review AI-ranked applicants</p>
+    <!-- Stats row -->
+    <div class="row g-4 mb-5">
+        <div class="col-sm-6 col-lg-3">
+            <div class="card-ats p-4 h-100 position-relative overflow-hidden">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="text-muted small fw-800 text-uppercase tracking-wider">Total Positions</div>
+                    <div class="rounded-circle bg-indigo-subtle p-2 text-indigo">
+                        <i class="bi bi-briefcase fs-5"></i>
+                    </div>
+                </div>
+                <div class="h2 fw-900 m-0">{{ total_jobs }}</div>
+                <div class="mt-2 small">
+                    <span class="text-success fw-bold"><i class="bi bi-arrow-up"></i> 12%</span>
+                    <span class="text-muted ms-1">vs last month</span>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card-ats p-4 h-100 position-relative">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="text-muted small fw-800 text-uppercase tracking-wider">Total Applicants</div>
+                    <div class="rounded-circle bg-teal-subtle p-2 text-teal">
+                        <i class="bi bi-people fs-5"></i>
+                    </div>
+                </div>
+                <div class="h2 fw-900 m-0">{{ total_applicants }}</div>
+                <div class="mt-2 small text-muted font-mono" style="font-size: 0.7rem;">AGGREGATED DATA</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card-ats p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="text-muted small fw-800 text-uppercase tracking-wider">Shortlisted</div>
+                    <div class="rounded-circle bg-amber-subtle p-2 text-amber">
+                        <i class="bi bi-stars fs-5"></i>
+                    </div>
+                </div>
+                <div class="h2 fw-900 m-0 text-amber">{{ shortlisted }}</div>
+                <div class="mt-2 small text-muted">Quality Score ≥ 70%</div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-lg-3">
+            <div class="card-ats p-4 h-100">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="text-muted small fw-800 text-uppercase tracking-wider">Hires</div>
+                    <div class="rounded-circle bg-teal-subtle p-2 text-teal">
+                        <i class="bi bi-person-check fs-5"></i>
+                    </div>
+                </div>
+                <div class="h2 fw-900 m-0 text-teal">0</div>
+                <div class="mt-2 small text-muted">Awaiting confirmation</div>
+            </div>
+        </div>
     </div>
-    <a href="{% url 'job_create' %}" class="btn-teal">
-      <i class="bi bi-plus-circle"></i>Post New Job
-    </a>
-  </div>
 
-  <!-- Stats row -->
-  <div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-      <div class="stat-card">
-        <div class="stat-num">{{ total_jobs }}</div>
-        <div class="stat-label">Total Jobs</div>
-        <i class="bi bi-briefcase stat-icon"></i>
-      </div>
+    <div class="row g-4">
+        <!-- Main Job Management -->
+        <div class="col-xl-8">
+            <div class="card-ats h-100 border-0 shadow-sm">
+                <div class="p-4 border-bottom d-flex justify-content-between align-items-center bg-light-subtle">
+                    <div>
+                        <h5 class="m-0 fw-900">Active Job Postings</h5>
+                        <p class="text-muted small m-0">Manage your current openings and candidate flow</p>
+                    </div>
+                    <a href="{% url 'job_create' %}" class="btn btn-ats-primary btn-sm px-3">
+                        <i class="bi bi-plus-lg me-1"></i> Post Job
+                    </a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle m-0">
+                        <thead>
+                            <tr class="small text-muted text-uppercase fw-800">
+                                <th class="ps-4 py-3">Position</th>
+                                <th class="py-3">Talent Pool</th>
+                                <th class="py-3">Avg Match</th>
+                                <th class="py-3">Status</th>
+                                <th class="text-end pe-4 py-3">Management</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for job in jobs %}
+                            <tr>
+                                <td class="ps-4">
+                                    <div class="fw-bold text-main">{{ job.title }}</div>
+                                    <div class="small text-muted d-flex align-items-center gap-1">
+                                        <i class="bi bi-geo-alt"></i> {{ job.location }}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <span class="fw-900 text-teal">{{ job.total_applicants }}</span>
+                                        <div class="progress flex-grow-1" style="height: 6px; max-width: 60px;">
+                                            <div class="progress-bar bg-teal" style="width: {% widthratio job.total_applicants 50 100 %}%"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if job.avg_score %}
+                                    <div class="badge-pipeline shortlisted py-1 px-2" style="font-size: 0.65rem">
+                                        {{ job.avg_score|floatformat:1 }}%
+                                    </div>
+                                    {% else %}
+                                    <span class="text-muted smaller">Pending Data</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if job.is_active %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 fw-bold" style="font-size: 0.6rem">OPEN</span>
+                                    {% else %}
+                                    <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 fw-bold" style="font-size: 0.6rem">CLOSED</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end pe-4">
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <a href="{% url 'job_applicants' job.pk %}" class="btn btn-ats-outline btn-sm p-2 px-3" title="View Applicants">
+                                            <i class="bi bi-people-fill"></i>
+                                        </a>
+                                        <a href="{% url 'job_edit' job.pk %}" class="btn btn-ats-outline btn-sm p-2 px-3" title="Edit Job">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="py-5 text-center">
+                                    <div class="opacity-25 mb-3"><i class="bi bi-briefcase-fill display-4"></i></div>
+                                    <h6 class="text-muted fw-bold">Your recruitment funnel is empty</h6>
+                                    <a href="{% url 'job_create' %}" class="btn btn-ats-primary mt-2 btn-sm">Create First Job Posting</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Side: Secondary Analytics -->
+        <div class="col-xl-4">
+            <div class="card-ats mb-4">
+                <div class="p-4 border-bottom bg-light-subtle">
+                    <h6 class="m-0 fw-900">Application Velocity</h6>
+                </div>
+                <div class="p-4">
+                    <div style="height: 220px;">
+                        <canvas id="recruitmentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-ats">
+                <div class="p-4 border-bottom bg-light-subtle">
+                    <h6 class="m-0 fw-900">Recent Pipeline Actions</h6>
+                </div>
+                <div class="p-4">
+                    <div class="d-flex flex-column gap-4">
+                        <div class="d-flex gap-3 align-items-start">
+                            <div class="rounded-circle bg-teal-subtle text-teal p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; flex-shrink: 0">
+                                <i class="bi bi-person-plus-fill small"></i>
+                            </div>
+                            <div>
+                                <div class="small fw-bold">Candidate Sourced</div>
+                                <div class="text-muted smaller">New application for Senior Product Designer</div>
+                                <div class="text-muted smaller font-mono mt-1" style="opacity: 0.6">Just now</div>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-3 align-items-start border-top pt-3">
+                            <div class="rounded-circle bg-amber-subtle text-amber p-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; flex-shrink: 0">
+                                <i class="bi bi-star-fill small"></i>
+                            </div>
+                            <div>
+                                <div class="small fw-bold">Auto-Shortlisted</div>
+                                <div class="text-muted smaller">AI identified high-match candidate (94%)</div>
+                                <div class="text-muted smaller font-mono mt-1" style="opacity: 0.6">14 mins ago</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="col-6 col-md-3">
-      <div class="stat-card">
-        <div class="stat-num">{{ active_jobs }}</div>
-        <div class="stat-label">Active Jobs</div>
-        <i class="bi bi-check-circle stat-icon"></i>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="stat-card">
-        <div class="stat-num">{{ total_applicants }}</div>
-        <div class="stat-label">Total Applicants</div>
-        <i class="bi bi-people stat-icon"></i>
-      </div>
-    </div>
-    <div class="col-6 col-md-3">
-      <div class="stat-card">
-        <div class="stat-num" style="color:var(--teal)">{{ shortlisted }}</div>
-        <div class="stat-label">Shortlisted (≥70%)</div>
-        <i class="bi bi-star stat-icon"></i>
-      </div>
-    </div>
-  </div>
-
-  <!-- Job postings table -->
-  {% if jobs %}
-  <div class="card-dark">
-    <div class="card-dark-header">
-      <h2><i class="bi bi-list-ul me-2" style="color:var(--teal)"></i>Your Job Postings</h2>
-    </div>
-    <div style="overflow-x:auto">
-      <table class="dark-table">
-        <thead>
-          <tr>
-            <th>Job Title</th>
-            <th>Company / Location</th>
-            <th>Required Skills</th>
-            <th class="text-center">Applicants</th>
-            <th class="text-center">Avg Score</th>
-            <th class="text-center">Status</th>
-            <th class="text-center">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for job in jobs %}
-          <tr>
-            <!-- Title -->
-            <td>
-              <span style="font-weight:700;color:#fff">{{ job.title }}</span>
-              <div style="font-size:.75rem;color:var(--muted);font-family:var(--mono);margin-top:2px">
-                {{ job.get_experience_level_display }}
-              </div>
-            </td>
-
-            <!-- Company / location -->
-            <td>
-              <div style="font-size:.875rem">{{ job.company|default:"—" }}</div>
-              <div style="font-size:.75rem;color:var(--muted)">
-                <i class="bi bi-geo-alt me-1"></i>{{ job.location }}
-              </div>
-            </td>
-
-            <!-- Skills preview -->
-            <td style="max-width:220px">
-              <div style="display:flex;flex-wrap:wrap;gap:4px">
-                {% for skill in job.get_required_skills_list|slice:":4" %}
-                  <span class="pill pill-muted">{{ skill }}</span>
-                {% endfor %}
-                {% with total=job.get_required_skills_list|length %}
-                  {% if total > 4 %}
-                    <span class="pill pill-muted">+{{ total|add:"-4" }}</span>
-                  {% endif %}
-                {% endwith %}
-              </div>
-            </td>
-
-            <!-- Applicant count -->
-            <td class="text-center">
-              <span style="font-family:var(--mono);font-weight:700;color:var(--teal);font-size:1.1rem">
-                {{ job.total_applicants }}
-              </span>
-            </td>
-
-            <!-- Avg score -->
-            <td class="text-center">
-              {% if job.avg_score %}
-                <span style="font-family:var(--mono);font-weight:700;
-                  color:{% if job.avg_score >= 70 %}var(--teal){% elif job.avg_score >= 45 %}var(--amber){% else %}var(--rose){% endif %}">
-                  {{ job.avg_score|floatformat:1 }}%
-                </span>
-              {% else %}
-                <span style="color:var(--muted);font-size:.8rem">—</span>
-              {% endif %}
-            </td>
-
-            <!-- Active badge -->
-            <td class="text-center">
-              {% if job.is_active %}
-                <span class="pill pill-teal">Active</span>
-              {% else %}
-                <span class="pill pill-muted">Closed</span>
-              {% endif %}
-            </td>
-
-            <!-- Actions -->
-            <td class="text-center">
-              <div style="display:flex;gap:6px;justify-content:center">
-                <a href="{% url 'job_applicants' job.pk %}" class="btn-teal"
-                   style="padding:.35rem .8rem;font-size:.78rem">
-                  <i class="bi bi-people"></i>View
-                </a>
-                <a href="{% url 'job_edit' job.pk %}" class="btn-ghost"
-                   style="padding:.35rem .8rem;font-size:.78rem">
-                  <i class="bi bi-pencil"></i>
-                </a>
-              </div>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  </div>
-
-  {% else %}
-  <!-- Empty state -->
-  <div class="card-dark">
-    <div class="empty-state">
-      <i class="bi bi-briefcase"></i>
-      <h3>No job postings yet</h3>
-      <p style="color:var(--muted);margin-bottom:1.5rem">
-        Post your first job and start receiving AI-screened applications.
-      </p>
-      <a href="{% url 'job_create' %}" class="btn-teal">
-        <i class="bi bi-plus-circle"></i>Post a Job
-      </a>
-    </div>
-  </div>
-  {% endif %}
-
 </div>
+
+<style>
+    .fw-800 { font-weight: 800; }
+    .fw-900 { font-weight: 900; }
+    .tracking-wider { letter-spacing: 0.05em; }
+    .smaller { font-size: 0.75rem; }
+    .font-mono { font-family: var(--mono); }
+    .bg-indigo-subtle { background: rgba(99, 102, 241, 0.1); }
+    .bg-teal-subtle { background: rgba(var(--teal-rgb), 0.1); }
+    .bg-amber-subtle { background: rgba(245, 166, 35, 0.1); }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const ctx = document.getElementById('recruitmentChart').getContext('2d');
+    const isDark = document.documentElement.getAttribute('data-bs-theme') === 'dark';
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
+            datasets: [{
+                label: 'Activity',
+                data: [12, 19, 15, 25, 22, 10, 8],
+                borderColor: '#0fd6c2',
+                backgroundColor: 'rgba(15, 214, 194, 0.08)',
+                fill: true,
+                tension: 0.45,
+                pointRadius: 0,
+                borderWidth: 3
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    grid: { color: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.03)' },
+                    ticks: { color: 'rgba(120,130,150,0.5)', font: { size: 10 } }
+                },
+                x: {
+                    grid: { display: false },
+                    ticks: { color: 'rgba(120,130,150,0.5)', font: { size: 10 } }
+                }
+            }
+        }
+    });
+</script>
 {% endblock %}
