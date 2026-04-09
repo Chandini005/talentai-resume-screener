@@ -1,1 +1,1 @@
-web: gunicorn talentai-resume-screener.wsgi
+web: gunicorn resume_screener.wsgi
