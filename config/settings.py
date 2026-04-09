@@ -12,7 +12,7 @@ SECRET_KEY = 'django-insecure-resume-ai-nlp-system-change-in-production-2024'
 
 DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ['.up.railway.app']
 
 # ── Applications ──────────────────────────────────────────────────────────────
 INSTALLED_APPS = [
